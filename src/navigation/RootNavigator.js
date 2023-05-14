@@ -10,7 +10,9 @@ import SplashScreen from "react-native-splash-screen";
 import {useDispatch, useSelector, Provider} from 'react-redux';
 import {checkToken} from '../store/actions/farmMeatActions';
 import AuthScreen from '../components/screens/AuthScreens/Auth';
-import HomeScreen from '../components/screens/MainScreens/Home';
+import HomeCatalogScreen from '../components/screens/MainScreens/HomeCatalog';
+import CatalogProductsScreen from '../components/screens/MainScreens/CatalogProducts';
+import ProductSinglePageScreen from '../components/screens/MainScreens/ProductSinglePage';
 
 // const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -30,39 +32,71 @@ const RootNavigator = () => {
 
     return (
             <NavigationContainer>
+                {isLoggedIn ? (
+                    <Stack.Navigator
+                        initialRouteName='HomeCatalogScreen'
+                        screenOptions={{
+                            headerShown: false,
+                            animationEnabled: true,
+                            detachPreviousScreen: true,
+                            presentation: 'transparentModal'
+                        }}
+                    >
+                        <Stack.Screen
+                            name="HomeCatalogScreen"
+                            component={HomeCatalogScreen}
+                            options={({route}) => ({
+                                tabBarButton: () => null,
+                                tabBarStyle: {display: 'none'},
+                            })}
+                        />
+                        <Stack.Screen
+                            name="CatalogProductsScreen"
+                            component={CatalogProductsScreen}
+                            options={({route}) => ({
+                                tabBarButton: () => null,
+                                tabBarStyle: {display: 'none'},
+                            })}
+                        />
+                        <Stack.Screen
+                            name="ProductSinglePageScreen"
+                            component={ProductSinglePageScreen}
+                            options={({route}) => ({
+                                tabBarButton: () => null,
+                                tabBarStyle: {display: 'none'},
+                            })}
+                        />
+                    </Stack.Navigator>
 
-                <Stack.Navigator
-                    initialRouteName='AuthScreen'
-                    screenOptions={{
-                        headerShown: false,
-                        animationEnabled: true,
-                        detachPreviousScreen: true,
-                        presentation: 'transparentModal'
-                    }}
-                >
+                ) : (
+                <>
+                    <Stack.Navigator
+                        initialRouteName='AuthScreen'
+                        screenOptions={{
+                            headerShown: false,
+                            animationEnabled: true,
+                            detachPreviousScreen: true,
+                            presentation: 'transparentModal'
+                        }}
+                    >
+                        <Stack.Screen
+                            name="AuthScreen"
+                            component={AuthScreen}
+                            options={({route}) => ({
+                                tabBarButton: () => null,
+                                tabBarStyle: {display: 'none'},
+                            })}
+                        />
 
+                    </Stack.Navigator>
 
-
-                    {isLoggedIn ? (
-                        <Stack.Screen name="HomeScreen" component={HomeScreen} />
-                    ) : (
-                        <>
-                            <Stack.Screen
-                                name="AuthScreen"
-                                component={AuthScreen}
-                                options={({route}) => ({
-                                    tabBarButton: () => null,
-                                    tabBarStyle: {display: 'none'},
-                                })}
-                            />
-
-                        </>
-                    )}
+                </>
+            )}
 
 
 
 
-                </Stack.Navigator>
+
             </NavigationContainer>
 
 

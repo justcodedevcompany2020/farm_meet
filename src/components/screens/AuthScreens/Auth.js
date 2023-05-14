@@ -8,7 +8,7 @@ import { useContext } from 'react';
 import Logo from '../../../assets/svg/logo'
 import FooterLogo from '../../../assets/svg/footer_logo'
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {checkToken, login} from '../../../store/actions/farmMeatActions';
+import {checkToken, login, getCatalogData} from '../../../store/actions/farmMeatActions';
 
 import {
     Text,
@@ -66,6 +66,9 @@ function SignIn (props) {
 
 
     const [code, setCode] = useState(['', '', '', '']);
+    const [code_error, setCodeError] = useState(false);
+    const [code_error_text, setCodeErrorText] = useState('');
+
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const inputRefs = useRef([]);
 
@@ -75,6 +78,10 @@ function SignIn (props) {
             return () => clearInterval(interval);
         }
     }, [timer]);
+
+
+
+
 
     const handleResend = async () => {
         // Отправляем запрос на повторное отправление кода на телефон
@@ -185,7 +192,22 @@ function SignIn (props) {
             setTimer(60)
 
         } else {
-            //errors
+            if (data.hasOwnProperty('message')) {
+                if (data.message == 'does not match the format 89XXXXXXXXX or phone field is missing') {
+                     setPhoneError(true)
+                    setPhoneErrorText('Не верный формат')
+                     setTimeout(() => {
+                         setPhoneError(false)
+                     }, 2000)
+                }
+                if (data.message == `It's been less than 1 minute since the last request code.`) {
+                    setPhoneError(true)
+                    setPhoneErrorText(`Попробуйте ещё раз через ${timer} секунд`)
+                    setTimeout(() => {
+                        setPhoneError(false)
+                    }, 2000)
+                }
+            }
         }
 
         console.log(typeof response.status, 'stauuuuus');
@@ -231,8 +253,16 @@ function SignIn (props) {
             setLoggedUserInfo(data)
 
         } else {
-            //errors
+            if (data.message == 'Code is wrong') {
+                setCodeError(true)
+                setCodeErrorText('Не верный код')
+                setTimeout(() => {
+                    setCodeError(false)
+                }, 2000)
+            }
         }
+
+
         console.log(data, 'ffffff');
     }
 
@@ -368,11 +398,16 @@ function SignIn (props) {
 
 
 
-                                        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                                            <Text>{timer > 0 ? `Повторить через ${timer} сек.` : null}</Text>
+                                        <View style={{width: '100%', paddingTop: 20}}>
+                                            {timer > 0 &&
+                                            <TouchableOpacity disabled={true} style={styles.timer_btn}>
+                                                <Text style={styles.timer_text}>Повторить через {timer} сек.</Text>
+                                            </TouchableOpacity>
+                                            }
+                                            {/*<Text style={styles.timer_text}>{timer > 0 ? `Повторить через ${timer} сек.` : null}</Text>*/}
                                             {timer == 0 &&
-                                                <TouchableOpacity onPress={() => {handleResend()}}>
-                                                    <Text>Отправить код повторно</Text>
+                                                <TouchableOpacity onPress={() => {handleResend()}} style={styles.timer_btn}>
+                                                    <Text style={styles.timer_text}>Отправить код повторно</Text>
                                                 </TouchableOpacity>
                                             }
 
@@ -472,6 +507,18 @@ function SignIn (props) {
                 </View>
             </View>
             }
+            {phone_error &&
+                <View style={styles.error_box}>
+                    <Text style={styles.error_text}>{phone_error_text}</Text>
+                </View>
+            }
+            {code_error &&
+                <View style={styles.error_box}>
+                    <Text style={styles.error_text}>
+                        {code_error_text}
+                    </Text>
+                </View>
+            }
         </SafeAreaView>
     );
 }
@@ -487,6 +534,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#4E7234',
         width: "100%",
         height:  '100%',
+        position: 'relative'
 
     },
 
@@ -526,7 +574,13 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: '#ffffff',
         fontSize: 20,
-        textAlign: 'center'
+        textAlign: 'center',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 3,
+        shadowRadius: 19,
+        elevation: 10
+
 
     },
 
@@ -538,7 +592,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 17,
         height: 56,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 3,
+        shadowRadius: 19,
+        elevation: 10
     },
     auth_btn_text: {
         fontWeight: '400',
@@ -578,7 +637,12 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: '#ffffff',
         fontSize: 20,
-        textAlign: 'center'
+        textAlign: 'center',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 3,
+        shadowRadius: 19,
+        elevation: 10
     },
     phone_code_popup_inputs_wrapper: {
         flexDirection: 'row',
@@ -601,7 +665,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: 17,
         height: 56,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 3,
+        shadowRadius: 19,
+        elevation: 10
     },
     phone_code_popup_btn_text: {
         fontWeight: '400',
@@ -634,5 +703,36 @@ const styles = StyleSheet.create({
     footer_logo: {
         position: 'absolute',
         bottom: 40
+    },
+    error_box: {
+        height: 70,
+        width: 220,
+        borderRadius: 14,
+        backgroundColor: '#cc0000',
+        position: 'absolute',
+        top: 20,
+        justifyContent: 'center',
+        alignSelf: 'center',
+        alignItems: 'center',
+        zIndex: 99999999999999999,
+
+
+    },
+    error_text: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: '500',
+        textAlign: 'center'
+    },
+    timer_text: {
+        fontWeight: '400',
+        color: '#ffffff',
+        fontSize: 21,
+        textAlign: 'center',
+    },
+    timer_btn: {
+        justifyContent: 'center',
+        alignSelf: 'center',
+        alignItems: 'center',
     }
 });

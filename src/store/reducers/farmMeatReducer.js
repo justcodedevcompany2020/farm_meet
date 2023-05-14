@@ -3,11 +3,23 @@ import {
   REGISTER_SUCCESS,
   LOGOUT,
   CHECK_TOKEN,
+  SET_CATALOG_DATA,
+  SET_CATALOG_ID,
+  SET_CATALOG_PRODUCTS_DATA,
+  SET_PRODUCT_ID,
+  SET_SINGLE_PRODUCT_DATA
 } from '../actions/type';
 
 const initialState = {
   isLoggedIn: false,
   user: null,
+  catalog_data: [],
+  catalog_id: null,
+
+  catalog_products_data: [],
+  product_id: null,
+
+  single_product_data: [],
 };
 
 export default function farmMeatReducer(state = initialState, action) {
@@ -36,6 +48,31 @@ export default function farmMeatReducer(state = initialState, action) {
         ...state,
         isLoggedIn: payload.isLoggedIn,
         user: payload.user,
+      };
+    case SET_CATALOG_DATA:
+      return {
+        ...state,
+        catalog_data: payload
+      };
+    case SET_CATALOG_ID:
+      return {
+        ...state,
+        catalog_id: payload
+      };
+    case SET_CATALOG_PRODUCTS_DATA:
+      return {
+        ...state,
+        catalog_products_data: payload
+      };
+    case SET_PRODUCT_ID:
+      return {
+        ...state,
+        product_id: payload
+      };
+    case SET_SINGLE_PRODUCT_DATA:
+      return {
+        ...state,
+        single_product_data: payload
       };
     default:
       return state;
