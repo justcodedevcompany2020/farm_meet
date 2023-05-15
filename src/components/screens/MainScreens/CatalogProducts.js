@@ -61,6 +61,7 @@ function CatalogProducts (props) {
 
     }
 
+
     return (
         <SafeAreaView style={[styles.container]}>
             <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#EFF4D6" translucent = {true}/>

@@ -48,9 +48,9 @@ function Footer (props) {
     const redirectToHomeCatalogScreen = () => {
         props.navigation.navigate('HomeCatalogScreen')
     }
-
-
-
+    const redirectToBasketScreen = () => {
+        props.navigation.navigate('BasketScreen')
+    }
 
 
     return (
@@ -100,7 +100,9 @@ function Footer (props) {
 
                     </TouchableOpacity>
                     :
-                    <TouchableOpacity style={styles.footer_item}>
+                    <TouchableOpacity style={styles.footer_item} onPress={() => {
+                        redirectToBasketScreen()
+                    }}>
                         <View style={styles.footer_item_icon}>
                             <BasketNoActiveSvg/>
                         </View>
@@ -150,11 +152,11 @@ const styles = StyleSheet.create({
         width: '100%',
         paddingTop: 12,
         paddingBottom: 20,
-        borderWidth: 2,
-        borderColor: '#E9E9E9',
+        borderTopWidth: 2,
+        borderTopColor: '#E9E9E9',
     },
     footer_wrapper: {
-        width: 305,
+        width: 315,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',

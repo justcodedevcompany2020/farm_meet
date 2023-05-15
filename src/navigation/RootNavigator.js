@@ -13,6 +13,7 @@ import AuthScreen from '../components/screens/AuthScreens/Auth';
 import HomeCatalogScreen from '../components/screens/MainScreens/HomeCatalog';
 import CatalogProductsScreen from '../components/screens/MainScreens/CatalogProducts';
 import ProductSinglePageScreen from '../components/screens/MainScreens/ProductSinglePage';
+import BasketScreen from '../components/screens/MainScreens/Basket';
 
 // const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -61,6 +62,14 @@ const RootNavigator = () => {
                         <Stack.Screen
                             name="ProductSinglePageScreen"
                             component={ProductSinglePageScreen}
+                            options={({route}) => ({
+                                tabBarButton: () => null,
+                                tabBarStyle: {display: 'none'},
+                            })}
+                        />
+                        <Stack.Screen
+                            name="BasketScreen"
+                            component={BasketScreen}
                             options={({route}) => ({
                                 tabBarButton: () => null,
                                 tabBarStyle: {display: 'none'},

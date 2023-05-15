@@ -7,7 +7,8 @@ import {
   SET_CATALOG_ID,
   SET_CATALOG_PRODUCTS_DATA,
   SET_PRODUCT_ID,
-  SET_SINGLE_PRODUCT_DATA
+  SET_SINGLE_PRODUCT_DATA,
+  SET_BASKET_INFO,
 } from '../actions/type';
 
 const initialState = {
@@ -20,6 +21,8 @@ const initialState = {
   product_id: null,
 
   single_product_data: [],
+
+  basket_info: [],
 };
 
 export default function farmMeatReducer(state = initialState, action) {
@@ -73,6 +76,12 @@ export default function farmMeatReducer(state = initialState, action) {
       return {
         ...state,
         single_product_data: payload
+      };
+
+    case SET_BASKET_INFO:
+      return {
+        ...state,
+        basket_info: payload
       };
     default:
       return state;

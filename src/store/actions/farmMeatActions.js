@@ -7,7 +7,9 @@ import {
   SET_CATALOG_ID,
   SET_CATALOG_PRODUCTS_DATA,
   SET_PRODUCT_ID,
-  SET_SINGLE_PRODUCT_DATA
+  SET_SINGLE_PRODUCT_DATA,
+  SET_BASKET_INFO,
+
 
 
 } from './type';
@@ -20,7 +22,8 @@ export const getCatalogData = () => dispatch => {
     userInfo = JSON.parse(userInfo)
     let token =  userInfo.token;
     let session =  userInfo.session;
-    console.log(token, 'hhhhhhh');
+    console.log(token, 'token');
+    console.log(session, 'session');
 
     try {
 
@@ -165,7 +168,47 @@ export const setProductId = (productId, callback) => dispatch => {
 };
 
 
+export const getBasketInfo = () => dispatch => {
+  return new Promise( async (resolve, reject) => {
+    let userInfo = await AsyncStorage.getItem('user');
+    userInfo = JSON.parse(userInfo)
+    let token =  userInfo.token;
+    let session =  userInfo.session;
+    console.log(token, 'token');
+    console.log(session, 'session');
 
+    try {
+
+      let myHeaders = new Headers();
+      myHeaders.append("Authorization", `Token ${token}`);
+
+      let formdata = new FormData();
+      formdata.append("session", session);
+
+      let requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: formdata,
+        redirect: 'follow'
+      };
+
+      let response = await fetch("https://farm-meat.site/shop/basket/", requestOptions);
+      let data = await response.json();
+
+      console.log(data, 'basket info');
+      if (response.status == 200) {
+        dispatch({
+          type: SET_BASKET_INFO,
+          payload: data,
+        });
+      }
+
+      resolve(true);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 
 
