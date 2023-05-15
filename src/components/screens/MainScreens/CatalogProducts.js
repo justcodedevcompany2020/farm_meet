@@ -6,13 +6,15 @@ import {StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {getProductsByCatalogCategoryId, setProductId} from '../../../store/actions/farmMeatActions';
+import {getProductsByCatalogCategoryId, setProductId, getBasketInfo, addToBasket} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import BackIcon from '../../../assets/svg/back_icon.js'
 import BasketIcon from '../../../assets/svg/product_basket'
 import StarIcon from '../../../assets/svg/star_icon'
 import MinusIcon from '../../../assets/svg/minus_icon'
 import PlusIcon from '../../../assets/svg/plus_icon'
+import BasketBlock from '../../includes/BasketBlock';
+
 
 import {
     Text,
@@ -27,7 +29,8 @@ import {
     ImageBackground,
     ScrollView,
     Platform,
-    Dimensions
+    Dimensions,
+    TouchableHighlight
 } from 'react-native';
 
 import {
@@ -44,12 +47,15 @@ const windowHeight = Dimensions.get('window').height;
 
 function CatalogProducts (props) {
     const dispatch = useDispatch();
-    const {catalog_products_data, catalog_id} = useSelector(state => state.farmMeatReducer);
+    const {catalog_products_data, catalog_id, basket_info} = useSelector(state => state.farmMeatReducer);
 
     useEffect(() => {
         dispatch(getProductsByCatalogCategoryId(catalog_id))
     }, [dispatch]);
 
+    useEffect(() => {
+        dispatch(getBasketInfo())
+    }, [dispatch]);
 
     const context = useContext(AuthContext);
 
@@ -61,6 +67,17 @@ function CatalogProducts (props) {
 
     }
 
+    const  findInBasket = (id) => {
+        let productId = id;
+        let objectsWithProductId = basket_info[0].products.filter(obj => obj.product.id === productId);
+        let hasObjectsWithProductId = objectsWithProductId.length > 0;
+        return hasObjectsWithProductId ? objectsWithProductId : null;
+    }
+
+    const addToBasketHandler = (id, amount) => {
+        dispatch(addToBasket(id, amount))
+
+    }
 
     return (
         <SafeAreaView style={[styles.container]}>
@@ -77,7 +94,7 @@ function CatalogProducts (props) {
             </View>
             <ScrollView style={styles.catalog_products_items_main_wrapper}>
                 <View style={styles.catalog_products_items_wrapper}>
-                    {catalog_products_data.length > 0 && catalog_products_data.map((item, index) => {
+                    {basket_info.length > 0 && catalog_products_data.length > 0 && catalog_products_data.map((item, index) => {
                         return(
                             <TouchableOpacity key={index} style={styles.catalog_products_item}
                                 onPress={() => {
@@ -102,18 +119,45 @@ function CatalogProducts (props) {
                                         <ImageBackground borderRadius={5} source={require('../../../assets/images/button_back_img.png')} style={styles.catalog_products_item_price_info_box}>
                                             <Text style={styles.catalog_products_item_price_info}>{item.price}/шт</Text>
                                         </ImageBackground>
-                                        {/*<TouchableOpacity style={styles.catalog_products_item_basket_icon}>*/}
-                                        {/*    <BasketIcon/>*/}
-                                        {/*</TouchableOpacity>*/}
-                                        <View style={styles.catalog_products_item_plus_minus_btns_wrapper}>
-                                            <TouchableOpacity style={styles.catalog_products_item_minus_btn}>
-                                                <MinusIcon/>
-                                            </TouchableOpacity>
-                                            <Text style={styles.catalog_products_item_quantity_info}>1</Text>
-                                            <TouchableOpacity style={styles.catalog_products_item_plus_btn}>
-                                                <PlusIcon/>
-                                            </TouchableOpacity>
-                                        </View>
+                                        {findInBasket(item.id) ?
+                                            <TouchableHighlight>
+                                                <View style={styles.catalog_products_item_plus_minus_btns_wrapper}>
+                                                    <TouchableOpacity
+                                                        style={styles.catalog_products_item_minus_btn}
+                                                        onPress={() => {
+                                                            addToBasketHandler(item.id, findInBasket(item.id)[0].amount - 1)
+                                                        }}
+                                                    >
+                                                        <MinusIcon/>
+                                                    </TouchableOpacity>
+                                                    <Text style={styles.catalog_products_item_quantity_info}>
+                                                        {findInBasket(item.id)[0].amount}
+                                                    </Text>
+                                                    <TouchableOpacity
+                                                        style={styles.catalog_products_item_plus_btn}
+                                                        onPress={() => {
+                                                            addToBasketHandler(item.id, findInBasket(item.id)[0].amount + 1)
+                                                        }}
+                                                    >
+                                                        <PlusIcon/>
+                                                    </TouchableOpacity>
+                                                </View>
+                                            </TouchableHighlight>
+
+                                            :
+                                            <TouchableHighlight>
+                                                <TouchableOpacity
+                                                    style={styles.catalog_products_item_basket_icon}
+                                                    onPress={() => {
+                                                        addToBasketHandler(item.id, 1)
+                                                    }}
+                                                >
+                                                    <BasketIcon/>
+                                                </TouchableOpacity>
+                                            </TouchableHighlight>
+                                        }
+
+
                                     </View>
                                 </View>
                             </TouchableOpacity>
@@ -124,6 +168,7 @@ function CatalogProducts (props) {
             </ScrollView>
 
 
+            <BasketBlock  navigation={props.navigation}/>
             <Footer active_page={'home_catalog'} navigation={props.navigation}/>
 
 

@@ -6,7 +6,7 @@ import {StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {getBasketInfo} from '../../../store/actions/farmMeatActions';
+import {getBasketInfo, addToBasket} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import BackIcon from '../../../assets/svg/back_icon.js'
 import MinusIcon from '../../../assets/svg/minus_icon'
@@ -33,6 +33,7 @@ import {
     Platform,
     Dimensions,
     Switch,
+    Keyboard
 } from 'react-native';
 
 import {
@@ -44,11 +45,12 @@ import {
 } from 'react-native-safe-area-context';
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import StarIcon from '../../../assets/svg/star_icon';
+import {SET_BASKET_INFO} from '../../../store/actions/type';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
-function ProductSinglePage (props) {
+function Basket (props) {
     const dispatch = useDispatch();
     const {basket_info} = useSelector(state => state.farmMeatReducer);
 
@@ -67,6 +69,7 @@ function ProductSinglePage (props) {
     const [show_delivery_info, setShowDeliveryInfo] = useState(false);
     const [show_pickup_info, setShowPickupInfo] = useState(false);
     const [delivery_address_popup, setDeliveryAddressPopup] = useState(false);
+    const [order_success, setOrderSuccess] = useState(false);
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [isEnabled2, setIsEnabled2] = useState(false);
@@ -78,6 +81,29 @@ function ProductSinglePage (props) {
         setIsEnabled2(isEnabled2 => !isEnabled2)
         setShowPickupInfo(show_pickup_info => !show_pickup_info)
     };
+
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        // AsyncStorage.clear()
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => {
+                setKeyboardVisible(true);
+            },
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => {
+                setKeyboardVisible(false);
+            },
+        );
+
+        return () => {
+            keyboardDidHideListener.remove();
+            keyboardDidShowListener.remove();
+        };
+    }, []);
 
     useEffect(() => {
         dispatch(getBasketInfo())
@@ -108,6 +134,78 @@ function ProductSinglePage (props) {
     ]
 
     const context = useContext(AuthContext);
+
+    const  findInBasket = (id) => {
+        let productId = id;
+        let objectsWithProductId = basket_info[0].products.filter(obj => obj.product.id === productId);
+        let hasObjectsWithProductId = objectsWithProductId.length > 0;
+        return hasObjectsWithProductId ? objectsWithProductId : null;
+    }
+
+    const addToBasketHandler = (id, amount) => {
+        console.log(id, amount, 'kkkkkkkkkkkkkkk');
+        dispatch(addToBasket(id, amount))
+
+    }
+
+    const makeAnOrder = async () => {
+        let userInfo = await AsyncStorage.getItem('user');
+        userInfo = JSON.parse(userInfo)
+        let token =  userInfo.token;
+        let session =  userInfo.session;
+        console.log(token, 'token');
+        console.log(session, 'session');
+        let products = [];
+
+        let basket_products = basket_info[0]?.products;
+        for (let i = 0; i < basket_products.length; i++) {
+            console.log(basket_products[i].product.price, 'kkk');
+             let product_detail = {
+                 product: basket_products[i].product.id,
+                 amount: basket_products[i].amount,
+                 price: basket_products[i].product.price,
+             }
+            products.push(product_detail)
+        }
+        try {
+
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", `Token ${token}`);
+
+
+            let raw = JSON.stringify({
+                session: session,
+                payment_method: 1,
+                delivery_address: null,
+                products: products
+            });
+
+            let requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            let response = await fetch("https://farm-meat.site/shop/orders/create/", requestOptions);
+            let data = await response.json();
+
+            console.log(data, 'order');
+            if (response.status == 200) {
+                setOrderSuccess(true)
+                setTimeout(() => {
+                    setOrderSuccess(false)
+                    props.navigation.navigate('HomeCatalogScreen')
+                }, 2000)
+               // dispatch(getBasketInfo())
+            }
+
+        } catch (error) {
+            // reject(error);
+            console.log(error);
+        }
+    }
 
     return (
         <SafeAreaView style={[styles.container]}>
@@ -142,11 +240,21 @@ function ProductSinglePage (props) {
                                         <Text style={styles.basket_item_quantity_info}>450г</Text>
                                         <View style={styles.basket_item_price_info_plus_minus_btns_wrapper}>
                                             <View style={styles.catalog_products_item_plus_minus_btns_wrapper}>
-                                                <TouchableOpacity style={styles.catalog_products_item_minus_btn}>
+                                                <TouchableOpacity
+                                                    style={styles.catalog_products_item_minus_btn}
+                                                    onPress={() => {
+                                                        addToBasketHandler(item.product?.id, item?.amount - 1)
+                                                    }}
+                                                >
                                                     <MinusIcon/>
                                                 </TouchableOpacity>
                                                 <Text style={styles.catalog_products_item_quantity_info}>{item?.amount}</Text>
-                                                <TouchableOpacity style={styles.catalog_products_item_plus_btn}>
+                                                <TouchableOpacity
+                                                    style={styles.catalog_products_item_plus_btn}
+                                                    onPress={() => {
+                                                        addToBasketHandler(item.product?.id, item?.amount + 1)
+                                                    }}
+                                                >
                                                     <PlusIcon/>
                                                 </TouchableOpacity>
                                             </View>
@@ -344,11 +452,31 @@ function ProductSinglePage (props) {
 
             </ScrollView>
             <View style={styles.order_basket_btn_box}>
-                <TouchableOpacity style={styles.order_basket_btn}>
-                    <Text style={styles.order_basket_btn_text}>Заказать</Text>
-                </TouchableOpacity>
+                {basket_info[0]?.products?.length > 0 ?
+                    <TouchableOpacity
+
+                        style={styles.order_basket_btn}
+                        onPress={() => {
+                            makeAnOrder()
+                        }}
+                    >
+                        <Text style={styles.order_basket_btn_text}>Заказать</Text>
+                    </TouchableOpacity>
+                    :
+                    <TouchableOpacity
+                        disabled={true}
+                        style={[styles.order_basket_btn, {opacity: 0.6}]}
+                    >
+                        <Text style={styles.order_basket_btn_text}>Заказать</Text>
+                    </TouchableOpacity>
+
+                }
+
             </View>
-            <Footer active_page={'basket'} navigation={props.navigation}/>
+
+            {isKeyboardVisible === false &&
+                 <Footer active_page={'basket'} navigation={props.navigation}/>
+            }
 
             {show_payment_methods_popup &&
                 <View style={styles.payment_methods_popup}>
@@ -480,13 +608,17 @@ function ProductSinglePage (props) {
                 </View>
             }
 
+            {order_success &&
+                <View style={styles.order_success_popup}>
+                    <View style={styles.order_success_popup_wrapper}>
+                        <Text style={styles.order_success_popup_title}>Заказ успешно создан</Text>
+                    </View>
+                </View>
+            }
 
         </SafeAreaView>
     );
 }
-
-export default ProductSinglePage;
-
 
 const styles = StyleSheet.create({
     container: {
@@ -1054,5 +1186,44 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         textAlign: 'center'
+    },
+    order_success_popup: {
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        alignSelf: 'center',
+        alignItems: 'center',
+        // justifyContent: 'center',
+        paddingTop: 70,
+    },
+    order_success_popup_wrapper: {
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.2,
+        shadowRadius: 19,
+        elevation: 10,
+        width: '80%',
+        height: 120,
+        backgroundColor: '#ffffff',
+        borderRadius: 5,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    order_success_popup_title: {
+        color: '#4E7234',
+        fontWeight: '500',
+        fontSize: 25,
     }
 });
+
+export default Basket;

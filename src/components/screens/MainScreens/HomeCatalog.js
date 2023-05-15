@@ -2,7 +2,7 @@ import * as React from 'react';
 import {useEffect, useRef, useState} from 'react';
 import Svg, { Mask, Path, Rect, Circle, Defs, Stop, ClipPath, G } from "react-native-svg";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {StatusBar, useColorScheme} from 'react-native';
+import { StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import  NotificationLogo from '../../../assets/svg/notifications';
@@ -28,7 +28,8 @@ import {
     ImageBackground,
     ScrollView,
     Platform,
-    Dimensions
+    Dimensions,
+    Keyboard
 } from 'react-native';
 
 import {
@@ -105,6 +106,28 @@ function HomeCatalog (props) {
     const [search, setSearch] = useState('');
     const [active_interest, setActiveInterest] = useState({});
     const [show_interesting_question_popup, setShowInterestingQuestionPopup] = useState(false);
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        // AsyncStorage.clear()
+        const keyboardDidShowListener = Keyboard.addListener(
+            'keyboardDidShow',
+            () => {
+                setKeyboardVisible(true);
+            },
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+            'keyboardDidHide',
+            () => {
+                setKeyboardVisible(false);
+            },
+        );
+
+        return () => {
+            keyboardDidHideListener.remove();
+            keyboardDidShowListener.remove();
+        };
+    }, []);
 
     const context = useContext(AuthContext);
 
@@ -208,7 +231,9 @@ function HomeCatalog (props) {
             </ScrollView>
 
 
-            <Footer active_page={'home_catalog'} navigation={props.navigation}/>
+            {isKeyboardVisible === false &&
+                <Footer active_page={'home_catalog'} navigation={props.navigation}/>
+            }
 
 
             {show_interesting_question_popup &&

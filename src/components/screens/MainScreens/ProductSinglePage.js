@@ -6,7 +6,7 @@ import {StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {getSingleProductByProductId, setProductId} from '../../../store/actions/farmMeatActions';
+import {getSingleProductByProductId, setProductId, getBasketInfo, addToBasket} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import ProductBackIcon from '../../../assets/svg/product_back_icon'
 import ProductBasketIcon from '../../../assets/svg/single_product_basket_icon'
@@ -17,6 +17,8 @@ import SmallStarNotFullIcon from '../../../assets/svg/small_star_not_full_icon'
 import RecommendationsBasketIcon from '../../../assets/svg/recommendations_basket_icon'
 import MinusIcon from '../../../assets/svg/minus_big_icon'
 import PlusIcon from '../../../assets/svg/plus_big_icon'
+import BasketBlock from '../../includes/BasketBlock';
+
 
 import {
     Text,
@@ -31,7 +33,8 @@ import {
     ImageBackground,
     ScrollView,
     Platform,
-    Dimensions
+    Dimensions,
+    TouchableHighlight
 } from 'react-native';
 
 import {
@@ -48,7 +51,7 @@ const windowHeight = Dimensions.get('window').height;
 
 function ProductSinglePage (props) {
     const dispatch = useDispatch();
-    const {single_product_data, product_id} = useSelector(state => state.farmMeatReducer);
+    const {single_product_data, product_id, basket_info} = useSelector(state => state.farmMeatReducer);
 
     const [show_feedback, setShowFeedback] = useState(false);
 
@@ -56,6 +59,9 @@ function ProductSinglePage (props) {
         dispatch(getSingleProductByProductId(product_id))
     }, [dispatch]);
 
+    useEffect(() => {
+        dispatch(getBasketInfo())
+    }, [dispatch]);
 
     const context = useContext(AuthContext);
 
@@ -125,6 +131,17 @@ function ProductSinglePage (props) {
         },
     ];
 
+    const  findInBasket = (id) => {
+        let productId = id;
+        let objectsWithProductId = basket_info[0].products.filter(obj => obj.product.id === productId);
+        let hasObjectsWithProductId = objectsWithProductId.length > 0;
+        return hasObjectsWithProductId ? objectsWithProductId : null;
+    }
+
+    const addToBasketHandler = (id, amount) => {
+        dispatch(addToBasket(id, amount))
+
+    }
 
 
     return (
@@ -132,10 +149,11 @@ function ProductSinglePage (props) {
             <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#EFF4D6" translucent = {true}/>
             <ScrollView style={styles.single_product_main_wrapper}>
                 <View style={styles.single_product_header_wrapper}>
-                    <TouchableOpacity style={styles.single_product_header_back_btn}
-                                      onPress={() => {
-                                          props.navigation.goBack()
-                                      }}
+                    <TouchableOpacity
+                         style={styles.single_product_header_back_btn}
+                          onPress={() => {
+                              props.navigation.goBack()
+                          }}
                     >
                         <ProductBackIcon/>
                     </TouchableOpacity>
@@ -156,20 +174,42 @@ function ProductSinglePage (props) {
                             </ImageBackground>
                         </View>
                         <View>
-                            <View style={styles.single_product_basket_btn_plus_minus_btns_wrapper}>
-                                <TouchableOpacity style={styles.single_product_basket_btn}>
-                                    <ProductBasketIcon/>
-                                </TouchableOpacity>
-                            </View>
-                            {/*<View style={styles.catalog_products_item_plus_minus_btns_wrapper}>*/}
-                            {/*    <TouchableOpacity style={styles.catalog_products_item_minus_btn}>*/}
-                            {/*        <MinusIcon/>*/}
-                            {/*    </TouchableOpacity>*/}
-                            {/*    <Text style={styles.catalog_products_item_quantity_info}>1</Text>*/}
-                            {/*    <TouchableOpacity style={styles.catalog_products_item_plus_btn}>*/}
-                            {/*        <PlusIcon/>*/}
-                            {/*    </TouchableOpacity>*/}
-                            {/*</View>*/}
+                            {findInBasket(product_id) ?
+                                <View style={styles.catalog_products_item_plus_minus_btns_wrapper}>
+                                    <TouchableOpacity
+                                        style={styles.catalog_products_item_minus_btn}
+                                        onPress={() => {
+                                            addToBasketHandler(product_id, findInBasket(product_id)[0].amount - 1)
+                                        }}
+                                    >
+                                        <MinusIcon/>
+                                    </TouchableOpacity>
+                                    <Text style={styles.catalog_products_item_quantity_info}>
+                                        {findInBasket(product_id)[0].amount}
+                                    </Text>
+                                    <TouchableOpacity
+                                        style={styles.catalog_products_item_plus_btn}
+                                        onPress={() => {
+                                            addToBasketHandler(product_id, findInBasket(product_id)[0].amount + 1)
+                                        }}
+                                    >
+                                        <PlusIcon/>
+                                    </TouchableOpacity>
+                                </View>
+
+                                :
+                                <View style={styles.single_product_basket_btn_plus_minus_btns_wrapper}>
+                                    <TouchableOpacity
+                                        style={styles.single_product_basket_btn}
+                                        onPress={() => {
+                                            addToBasketHandler(product_id, 1)
+                                        }}
+                                    >
+                                        <ProductBasketIcon/>
+                                    </TouchableOpacity>
+                                </View>
+                            }
+
                         </View>
 
                     </View>
@@ -268,6 +308,7 @@ function ProductSinglePage (props) {
 
             </ScrollView>
 
+            <BasketBlock  navigation={props.navigation}/>
             <Footer active_page={'home_catalog'} navigation={props.navigation}/>
 
 
@@ -297,7 +338,9 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 10,
         top: 20,
-        zIndex: 999,
+        zIndex: 999999999999,
+        width: 50,
+        height: 50
     },
     single_product_header_img: {
         width: '100%',
