@@ -102,7 +102,10 @@ function SignIn (props) {
         let response = await fetch("https://farm-meat.site/accounts/get_auth_code/", requestOptions);
         let data = await response.json();
 
+
+
         if (response.status == 200) {
+            alert(data.code)
             setTimer(60);
             setUserInfoAfterGetCode(data)
         } else {
@@ -185,12 +188,14 @@ function SignIn (props) {
         let response = await fetch("https://farm-meat.site/accounts/get_auth_code/", requestOptions);
         let data = await response.json();
 
+
+
         if (response.status == 200) {
+            alert(data.code);
             setPhoneButtonDisable(true)
             setUserInfoAfterGetCode(data)
             setPhoneCodePopup(true)
             setTimer(60)
-
         } else {
             if (data.hasOwnProperty('message')) {
                 if (data.message == 'does not match the format 89XXXXXXXXX or phone field is missing') {
@@ -234,6 +239,8 @@ function SignIn (props) {
 
         let response = await fetch("https://farm-meat.site/accounts/login/", requestOptions);
         let data = await response.json();
+
+
 
         console.log(response.status, 'code status');
         if (response.status == 200) {
