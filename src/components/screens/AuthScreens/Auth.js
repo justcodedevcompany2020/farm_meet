@@ -65,10 +65,9 @@ function SignIn (props) {
     const context = useContext(AuthContext);
 
 
-    const [code, setCode] = useState(['', '', '', '']);
     const [code_error, setCodeError] = useState(false);
     const [code_error_text, setCodeErrorText] = useState('');
-
+    const [code, setCode] = useState(['', '', '', '']);
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
     const inputRefs = useRef([]);
 
@@ -86,7 +85,7 @@ function SignIn (props) {
     const handleResend = async () => {
         // Отправляем запрос на повторное отправление кода на телефон
 
-        let cleaned_phone_number = phone.replace(/\D/g, '');
+        let cleaned_phone_number = phone.replhandleResendace(/\D/g, '');
 
         let formdata = new FormData();
         formdata.append("user", cleaned_phone_number);

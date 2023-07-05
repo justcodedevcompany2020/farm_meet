@@ -51,6 +51,9 @@ function Footer (props) {
     const redirectToBasketScreen = () => {
         props.navigation.navigate('BasketScreen')
     }
+    const redirectToProfileScreen = () => {
+        props.navigation.navigate('ProfileScreen')
+    }
 
 
     return (
@@ -119,7 +122,12 @@ function Footer (props) {
 
                     </TouchableOpacity>
                     :
-                    <TouchableOpacity style={styles.footer_item}>
+                    <TouchableOpacity style={styles.footer_item}
+                                      onPress={() => {
+                                          redirectToProfileScreen()
+                                      }}
+
+                    >
                         <View style={styles.footer_item_icon}>
                             <ProfileNoActiveSvg/>
                         </View>

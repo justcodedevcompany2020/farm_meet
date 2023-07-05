@@ -9,6 +9,9 @@ import {
   SET_PRODUCT_ID,
   SET_SINGLE_PRODUCT_DATA,
   SET_BASKET_INFO,
+  SET_PROFILE_INFO,
+
+
 
 
 
@@ -253,6 +256,48 @@ export const addToBasket = (id, amount) => dispatch => {
   });
 };
 
+
+export const getProfileData = () => dispatch => {
+  return new Promise( async (resolve, reject) => {
+    let userInfo = await AsyncStorage.getItem('user');
+    userInfo = JSON.parse(userInfo)
+    let token =  userInfo.token;
+    let session =  userInfo.session;
+    console.log(token, 'token');
+    console.log(session, 'session');
+
+    try {
+
+      let myHeaders = new Headers();
+      myHeaders.append("Authorization", `Token ${token}`);
+
+      let formdata = new FormData();
+      formdata.append("session", session);
+
+      let requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: formdata,
+        redirect: 'follow'
+      };
+
+      let response = await fetch("https://farm-meat.site/shop/user/info/", requestOptions);
+      let data = await response.json();
+
+      console.log(data, 'profileInfo');
+      if (response.status == 200) {
+        dispatch({
+          type: SET_PROFILE_INFO,
+          payload: data,
+        });
+      }
+
+      resolve(true);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 
 
