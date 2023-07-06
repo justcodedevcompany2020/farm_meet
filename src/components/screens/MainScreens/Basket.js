@@ -6,7 +6,7 @@ import {StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {getBasketInfo, addToBasket} from '../../../store/actions/farmMeatActions';
+import {getBasketInfo, addToBasket, getProfileData} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import BackIcon from '../../../assets/svg/back_icon.js'
 import MinusIcon from '../../../assets/svg/minus_icon'
@@ -45,7 +45,8 @@ import {
 } from 'react-native-safe-area-context';
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
 import StarIcon from '../../../assets/svg/star_icon';
-import {SET_BASKET_INFO} from '../../../store/actions/type';
+import {SET_BASKET_INFO, SET_PROFILE_INFO} from '../../../store/actions/type';
+import AddAddressIcon from '../../../assets/svg/add_address_icon';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -55,7 +56,7 @@ function Basket (props) {
     const {basket_info} = useSelector(state => state.farmMeatReducer);
 
     const [collector_comment, setCollectorComment] = useState('');
-    const [delivery_address, setDeliveryAddress] = useState('');
+    const [delivery_address_city, setDeliveryAddressCity] = useState('');
     const [delivery_address_office, setDeliveryAddressOffice] = useState('');
     const [delivery_address_entrance, setDeliveryAddressEntrance] = useState('');
     const [delivery_address_floor, setDeliveryAddressFloor] = useState('');
@@ -69,7 +70,18 @@ function Basket (props) {
     const [show_delivery_info, setShowDeliveryInfo] = useState(false);
     const [show_pickup_info, setShowPickupInfo] = useState(false);
     const [delivery_address_popup, setDeliveryAddressPopup] = useState(false);
+    const [show_addresses_list, setShowAddressesList] = useState(false);
+    const [found_address_box, setFoundAddressesBox] = useState([]);
+
+
     const [order_success, setOrderSuccess] = useState(false);
+
+    const [last_address, setLastAddress] = useState('');
+    const [profile_info, setProfileInfo] = useState({});
+
+    const [selected_address, setSelectedAddress] = useState(null);
+
+
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [isEnabled2, setIsEnabled2] = useState(false);
@@ -85,7 +97,6 @@ function Basket (props) {
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
     useEffect(() => {
-        // AsyncStorage.clear()
         const keyboardDidShowListener = Keyboard.addListener(
             'keyboardDidShow',
             () => {
@@ -108,6 +119,61 @@ function Basket (props) {
     useEffect(() => {
         dispatch(getBasketInfo())
     }, [dispatch]);
+
+
+    useEffect(() => {
+
+        const unsubscribe = props.navigation.addListener('focus', () => {
+            getProfileInfo()
+        });
+
+        return unsubscribe;
+    }, [props.navigation])
+
+
+    const getProfileInfo = async () => {
+        let userInfo = await AsyncStorage.getItem('user');
+        userInfo = JSON.parse(userInfo)
+        let token =  userInfo.token;
+        let session =  userInfo.session;
+        console.log(token, 'token');
+        console.log(session, 'session');
+
+        try {
+
+            let myHeaders = new Headers();
+            myHeaders.append("Authorization", `Token ${token}`);
+
+            let formdata = new FormData();
+            formdata.append("session", session);
+
+            let requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: formdata,
+                redirect: 'follow'
+            };
+
+            let response = await fetch("https://farm-meat.site/shop/user/info/", requestOptions);
+            let data = await response.json();
+
+            console.log(data, 'profileInfo');
+            if (response.status == 200) {
+                setProfileInfo(data)
+                for (let i = 0; i < data.addresses.length; i++) {
+                        if (data.addresses[i].id == data.last_addres) {
+                            setLastAddress(data.addresses[i].text)
+                        }
+                }
+            }
+
+            resolve(true);
+        } catch (error) {
+            // reject(error);
+        }
+    }
+
+
 
     const add_to_basket = [
         {
@@ -177,7 +243,7 @@ function Basket (props) {
             let raw = JSON.stringify({
                 session: session,
                 payment_method: 1,
-                delivery_address: null,
+                delivery_address: last_address == '' ? null : last_address,
                 products: products
             });
 
@@ -207,6 +273,139 @@ function Basket (props) {
         }
     }
 
+
+    const selectSetAddress = async (item) => {
+        setSelectedAddress(item)
+        let userInfo = await AsyncStorage.getItem('user');
+        userInfo = JSON.parse(userInfo)
+        let token =  userInfo.token;
+        let session =  userInfo.session;
+        console.log(token, 'token');
+        console.log(session, 'session');
+        try {
+
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+            myHeaders.append("Authorization", `Token ${token}`);
+
+            console.log(item, 'item_function');
+
+            let raw = JSON.stringify({
+                session: session,
+                text: item.address,
+                latitude: parseInt(item.latitude),
+                longitude: parseInt(item.longitude),
+                comment: ""
+
+            });
+
+            console.log(raw, 'raaaaw3');
+            let requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: raw,
+                redirect: 'follow'
+            };
+
+            let response = await fetch("https://farm-meat.site/shop/user/set_address/", requestOptions);
+            let data = await response.json();
+
+            console.log(data, 'set new address');
+
+            if (data.hasOwnProperty('message')) {
+                if (data.message == 'Adress set successful.') {
+                    dispatch(getBasketInfo())
+                    getProfileInfo()
+                    setShowAddressesList(false)
+                    setDeliveryAddressPopup(false)
+                }
+            }
+
+
+        } catch (error) {
+            // reject(error);
+            console.log(error);
+        }
+    }
+
+
+    const setAddressYandex = async () => {
+        // setDeliveryAddressCity(val)
+        // if (val.length < 3) {
+        //     setShowAddressesList(false)
+        //     return false;
+        //
+        // }
+        let address = '';
+        if (delivery_address_city.length != 0) {
+            address = delivery_address_city
+        }
+
+        if (delivery_address_office != 0) {
+            address += `,${delivery_address_office}`
+        }
+
+        if (delivery_address_entrance != 0) {
+            address += `,${delivery_address_entrance}`
+        }
+
+        if (delivery_address_floor != 0) {
+            address += `,${delivery_address_floor}`
+        }
+        if (delivery_address_intercom != 0) {
+            address += `,${delivery_address_intercom}`
+        }
+        console.log(address, 'adrekdddddddddddddd');
+        try {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            let requestOptions = {
+                method: 'GET',
+                headers: myHeaders,
+                redirect: 'follow'
+            };
+
+
+
+            let url = `https://geocode-maps.yandex.ru/1.x/?apikey=18e0ef3c-65f2-4193-8487-cbf9451dd7a2&format=json&geocode=${encodeURIComponent(address)}`;
+            console.log(url, 'url');
+
+            let response = await fetch(url, requestOptions);
+            let data = await response.json();
+
+
+            console.log(data, 'set address');
+
+            let found = data.response.GeoObjectCollection.metaDataProperty.GeocoderResponseMetaData.found;
+            console.log(found, 'found');
+
+            let addresses = [];
+
+            if (found > 0) {
+                let futureMember = data.response.GeoObjectCollection.featureMember;
+                console.log(futureMember, 'found addresses');
+                for (let i = 0; i < futureMember.length; i++) {
+                    let pos = futureMember[i].GeoObject.Point.pos;
+                    let parts = pos.split(' ', 2);  // Splits the string by the first space
+                    console.log(parts, 'partsss');
+                    let dinamic_object = {address: futureMember[i].GeoObject.metaDataProperty.GeocoderMetaData.text, latitude: parts[0], longitude: parts[1]};
+                    addresses.push(dinamic_object)
+                }
+
+                console.log(addresses, 'new addressess');
+            }
+            setFoundAddressesBox(addresses)
+            setShowAddressesList(true)
+
+
+
+        } catch (error) {
+            // reject(error);
+            console.log(error);
+        }
+    }
+
     return (
         <SafeAreaView style={[styles.container]}>
             <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#EFF4D6" translucent = {true}/>
@@ -224,7 +423,7 @@ function Basket (props) {
             <ScrollView style={styles.basket_main_wrapper}>
                 <View style={styles.basket_items_wrapper}>
                     {basket_info.length > 0 && basket_info[0].products.length > 0 && basket_info[0].products.map((item, index) => {
-                        console.log(item?.product?.images[0]?.image, 'bsko');
+                        console.log(basket_info[0].products, 'bsko');
                         return(
                             <View key={index} style={styles.basket_item}>
                                     <TouchableOpacity style={styles.basket_item_img}>
@@ -395,7 +594,19 @@ function Basket (props) {
                     <View style={styles.delivery_info_wrapper}>
                         <Text style={styles.delivery_info_wrapper_title}>Адрес доставки</Text>
                         <View style={styles.delivery_address_info_edit_btn_wrapper}>
-                            <Text style={styles.delivery_address_info}>ул. Енисейская 17к2, кв. 10, подъезд 1.</Text>
+                            {profile_info?.addresses?.length > 0 ?
+                                <Text style={styles.delivery_address_info}>
+                                    {last_address}
+                                </Text>
+                                :
+                                <TouchableOpacity style={styles.profile_add_address_btn} onPress={() => {
+                                    setDeliveryAddressPopup(true)
+                                }}>
+                                    <Text style={styles.profile_add_address_btn_text}>+ Добавить новый адрес</Text>
+                                    <AddAddressIcon/>
+                                </TouchableOpacity>
+                            }
+
                             <TouchableOpacity style={styles.delivery_address_info_edit_btn}
                                 onPress={() => {
                                     setDeliveryAddressPopup(true)
@@ -542,72 +753,118 @@ function Basket (props) {
                 </View>
             }
             {delivery_address_popup &&
-                <View style={styles.delivery_address_popup}>
-                    <View style={styles.delivery_address_popup_wrapper}>
-                        <View style={styles.delivery_address_popup_box}>
+            <View style={styles.delivery_address_popup}>
+                <View style={styles.delivery_address_popup_wrapper}>
+                    <View style={styles.delivery_address_popup_box}>
+                        <TouchableOpacity style={styles.delivery_address_popup_close_btn}
+                                          onPress={() => {
+                                              setDeliveryAddressPopup(false)
+                                          }}
+                        >
+                            <PaymentCloseIcon/>
+                        </TouchableOpacity>
+                        <Text style={styles.delivery_address_popup_title}>Адрес доставки</Text>
+                        <View style={[styles.delivery_address_popup_input_wrapper]}>
+                            <TextInput
+                                style={[styles.delivery_address_popup_input_field]}
+                                onChangeText={(val) => setDeliveryAddressCity(val)}
+                                value={delivery_address_city}
+                                placeholder='Город, улица, дом'
+                                placeholderTextColor='#CFCFCF'
+
+                            />
+                        </View>
+
+                        <View style={styles.delivery_address_popup_details_inputs_wrapper}>
+                            <TextInput
+                                style={[styles.delivery_address_popup_details_input_field]}
+                                onChangeText={(val) => setDeliveryAddressOffice(val)}
+                                value={delivery_address_office}
+                                placeholder='кв/офис'
+                                placeholderTextColor='#CFCFCF'
+                                keyboardType={'phone-pad'}
+                            />
+                            <TextInput
+                                style={[styles.delivery_address_popup_details_input_field]}
+                                onChangeText={(val) => setDeliveryAddressEntrance(val)}
+                                value={delivery_address_entrance}
+                                placeholder='подъезд'
+                                placeholderTextColor='#CFCFCF'
+                                keyboardType={'phone-pad'}
+                            />
+
+                            <TextInput
+                                style={[styles.delivery_address_popup_details_input_field]}
+                                onChangeText={(val) => setDeliveryAddressFloor(val)}
+                                value={delivery_address_floor}
+                                placeholder='этаж'
+                                placeholderTextColor='#CFCFCF'
+                                keyboardType={'phone-pad'}
+                            />
+                            <TextInput
+                                style={[styles.delivery_address_popup_details_input_field]}
+                                onChangeText={(val) => setDeliveryAddressIntercom(val)}
+                                value={delivery_address_intercom}
+                                placeholder='домофон'
+                                placeholderTextColor='#CFCFCF'
+                                keyboardType={'phone-pad'}
+                            />
+
+
+                        </View>
+                    </View>
+                    <TouchableOpacity style={styles.delivery_address_popup_save_btn} onPress={() => {
+                        setAddressYandex()
+                    }}>
+                        <Text style={styles.delivery_address_popup_save_btn_text}>Сохранить</Text>
+                    </TouchableOpacity>
+
+                    {show_addresses_list &&
+                    <View style={styles.address_wrapper}>
+                        <View style={styles.address_wrapper_child}>
                             <TouchableOpacity style={styles.delivery_address_popup_close_btn}
                                               onPress={() => {
-                                                  setDeliveryAddressPopup(false)
+                                                  setShowAddressesList(false)
                                               }}
                             >
                                 <PaymentCloseIcon/>
                             </TouchableOpacity>
-                            <Text style={styles.delivery_address_popup_title}>Адрес доставки</Text>
-                            <View style={styles.delivery_address_popup_input_wrapper}>
-                                <TextInput
-                                    style={[styles.delivery_address_popup_input_field]}
-                                    onChangeText={(val) => setDeliveryAddress(val)}
-                                    value={delivery_address}
-                                    placeholder='Город, улица, дом'
-                                    placeholderTextColor='#CFCFCF'
+                            {found_address_box.length > 0
+                                ?
+                                <ScrollView style={styles.address_wrapper_child_scrollbox}>
+                                    {found_address_box.map((item, index) => {
+                                        console.log(item.address, 'iteeeeem');
+                                        return(
+                                            <TouchableOpacity key={index}
+                                                              style={styles.address_item}
+                                                              onPress={() => {
+                                                                  selectSetAddress(item)
+                                                              }}
+                                            >
 
-                                />
-                            </View>
-                            <View style={styles.delivery_address_popup_details_inputs_wrapper}>
-                                <TextInput
-                                    style={[styles.delivery_address_popup_details_input_field]}
-                                    onChangeText={(val) => setDeliveryAddressOffice(val)}
-                                    value={delivery_address_office}
-                                    placeholder='кв/офис'
-                                    placeholderTextColor='#CFCFCF'
-                                    keyboardType={'phone-pad'}
-                                />
-                                <TextInput
-                                    style={[styles.delivery_address_popup_details_input_field]}
-                                    onChangeText={(val) => setDeliveryAddressEntrance(val)}
-                                    value={delivery_address_entrance}
-                                    placeholder='подъезд'
-                                    placeholderTextColor='#CFCFCF'
-                                    keyboardType={'phone-pad'}
-                                />
+                                                <Text style={styles.address_item_text}>{item.address}</Text>
+                                            </TouchableOpacity>
+                                        )
 
-                                <TextInput
-                                    style={[styles.delivery_address_popup_details_input_field]}
-                                    onChangeText={(val) => setDeliveryAddressFloor(val)}
-                                    value={delivery_address_floor}
-                                    placeholder='этаж'
-                                    placeholderTextColor='#CFCFCF'
-                                    keyboardType={'phone-pad'}
-                                />
-                                <TextInput
-                                    style={[styles.delivery_address_popup_details_input_field]}
-                                    onChangeText={(val) => setDeliveryAddressIntercom(val)}
-                                    value={delivery_address_intercom}
-                                    placeholder='домофон'
-                                    placeholderTextColor='#CFCFCF'
-                                    keyboardType={'phone-pad'}
-                                />
+                                    })}
+                                </ScrollView>
+                                :
+                                <View style={styles.address_wrapper_not_found}>
+                                    <Text style={styles.address_wrapper_not_found_text}>
+                                        Адрес не найден
+                                    </Text>
+                                </View>
 
 
-                            </View>
+                            }
                         </View>
-                        <TouchableOpacity style={styles.delivery_address_popup_save_btn}>
-                            <Text style={styles.delivery_address_popup_save_btn_text}>Сохранить</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            }
 
+                    </View>
+                    }
+
+                </View>
+            </View>
+            }
             {order_success &&
                 <View style={styles.order_success_popup}>
                     <View style={styles.order_success_popup_wrapper}>
@@ -1223,7 +1480,89 @@ const styles = StyleSheet.create({
         color: '#4E7234',
         fontWeight: '500',
         fontSize: 25,
-    }
+    },
+    address_wrapper: {
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: windowHeight,
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        top: 0,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    address_item: {
+        width: '100%',
+        marginBottom: 10,
+    },
+    address_item_text: {
+        color: '#4E7234',
+        fontWeight: '400',
+        fontSize: 20,
+    },
+    address_wrapper_child: {
+        width: '90%',
+        height:  300,
+        backgroundColor: '#ffffff',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.2,
+        shadowRadius: 19,
+        elevation: 10,
+        borderRadius: 15,
+        paddingTop: 50,
+        paddingBottom: 47,
+        paddingHorizontal: 20,
+        position: 'absolute',
+        alignSelf: 'center',
+        zIndex: 9999999999999,
+        top: 174,
+
+    },
+    address_wrapper_child_scrollbox: {
+        flex: 1,
+        width: '100%',
+    },
+    address_wrapper_not_found: {
+        width: '100%',
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        paddingTop: 70
+    },
+
+    address_wrapper_not_found_text: {
+        color: '#4E7234',
+        fontWeight: '400',
+        fontSize: 25,
+        textAlign: 'center'
+    },
+    profile_edit_address_info: {
+        fontWeight: 500,
+        color: '#4E7234',
+        fontSize: 21,
+        width: '90%',
+    },
+    profile_add_address_btn: {
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        // paddingHorizontal: 20,
+    },
+    profile_add_address_btn_text: {
+        fontWeight: 500,
+        color: '#4E7234',
+        fontSize: 22,
+    },
 });
 
 export default Basket;

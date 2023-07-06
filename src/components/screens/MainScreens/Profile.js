@@ -93,28 +93,27 @@ function Profile (props) {
         props.navigation.navigate('SignInScreen')
     }
 
-    const setAddress = async () => {
-
+    const selectSetAddress = async (item) => {
+        setSelectedAddress(item)
         let userInfo = await AsyncStorage.getItem('user');
         userInfo = JSON.parse(userInfo)
         let token =  userInfo.token;
         let session =  userInfo.session;
         console.log(token, 'token');
         console.log(session, 'session');
-
         try {
 
             let myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
             myHeaders.append("Authorization", `Token ${token}`);
 
-            console.log(found_address_box, 'found_address_boxvv');
+            console.log(item, 'item_function');
 
             let raw = JSON.stringify({
                 session: session,
-                text: found_address_box[0].address,
-                latitude: parseInt(found_address_box[0].latitude),
-                longitude: parseInt(found_address_box[0].longitude),
+                text: item.address,
+                latitude: parseInt(item.latitude),
+                longitude: parseInt(item.longitude),
                 comment: ""
 
             });
@@ -135,6 +134,7 @@ function Profile (props) {
             if (data.hasOwnProperty('message')) {
                  if (data.message == 'Adress set successful.') {
                      dispatch(getProfileData())
+                     setShowAddressesList(false)
                      setDeliveryAddressPopup(false)
                  }
             }
@@ -147,17 +147,36 @@ function Profile (props) {
     }
 
 
-    const setAddressYandex = async (val) => {
-        setDeliveryAddressCity(val)
-        if (val.length < 3) {
-            setShowAddressesList(false)
-            return false;
-
+    const setAddressYandex = async () => {
+        // setDeliveryAddressCity(val)
+        // if (val.length < 3) {
+        //     setShowAddressesList(false)
+        //     return false;
+        //
+        // }
+        let address = '';
+        if (delivery_address_city.length != 0) {
+             address = delivery_address_city
         }
+
+        if (delivery_address_office != 0) {
+              address += `,${delivery_address_office}`
+        }
+
+        if (delivery_address_entrance != 0) {
+            address += `,${delivery_address_entrance}`
+        }
+
+        if (delivery_address_floor != 0) {
+            address += `,${delivery_address_floor}`
+        }
+        if (delivery_address_intercom != 0) {
+            address += `,${delivery_address_intercom}`
+        }
+        console.log(address, 'adrekdddddddddddddd');
         try {
             let myHeaders = new Headers();
             myHeaders.append("Content-Type", "application/json");
-
 
             let requestOptions = {
                 method: 'GET',
@@ -167,7 +186,7 @@ function Profile (props) {
 
 
 
-            let url = `https://geocode-maps.yandex.ru/1.x/?apikey=18e0ef3c-65f2-4193-8487-cbf9451dd7a2&format=json&geocode=${encodeURIComponent(val)}`;
+            let url = `https://geocode-maps.yandex.ru/1.x/?apikey=18e0ef3c-65f2-4193-8487-cbf9451dd7a2&format=json&geocode=${encodeURIComponent(address)}`;
             console.log(url, 'url');
 
             let response = await fetch(url, requestOptions);
@@ -205,13 +224,13 @@ function Profile (props) {
         }
     }
 
-    const selectAddress = (item) => {
-        console.log(item.address,  'item.addresses');
-
-        setSelectedAddress(item)
-        setDeliveryAddressCity(item.address)
-        setShowAddressesList(false)
-    }
+    // const selectAddress = (item) => {
+    //     console.log(item.address,  'item.addresses');
+    //
+    //     setSelectedAddress(item)
+    //     setDeliveryAddressCity(item.address)
+    //     setShowAddressesList(false)
+    // }
 
 
     return (
@@ -266,7 +285,7 @@ function Profile (props) {
 
                 <View style={styles.profile_edit_address_info_box}>
                     <ScrollView style={{width: '100%', flex: 1}}>
-                        {profile_info.addresses.map((item, index) => {
+                        {profile_info?.addresses?.map((item, index) => {
                             console.log(item.text, 'iteeeeem');
                             return(
                                 <View style={styles.profile_edit_address_icon_parent} key={index}>
@@ -274,9 +293,9 @@ function Profile (props) {
                                         <Text style={styles.profile_edit_address_info}>
                                             {item.text}
                                         </Text>
-                                        <TouchableOpacity style={styles.profile_edit_address_icon}>
-                                            <EditAddressIcon/>
-                                        </TouchableOpacity>
+                                        {/*<TouchableOpacity style={styles.profile_edit_address_icon}>*/}
+                                        {/*    <EditAddressIcon/>*/}
+                                        {/*</TouchableOpacity>*/}
                                     </View>
 
                                 </View>
@@ -309,7 +328,7 @@ function Profile (props) {
                         <View style={[styles.delivery_address_popup_input_wrapper]}>
                             <TextInput
                                 style={[styles.delivery_address_popup_input_field]}
-                                onChangeText={(val) => setAddressYandex(val)}
+                                onChangeText={(val) => setDeliveryAddressCity(val)}
                                 value={delivery_address_city}
                                 placeholder='Город, улица, дом'
                                 placeholderTextColor='#CFCFCF'
@@ -356,42 +375,51 @@ function Profile (props) {
                         </View>
                     </View>
                     <TouchableOpacity style={styles.delivery_address_popup_save_btn} onPress={() => {
-                        setAddress()
+                        setAddressYandex()
                     }}>
                         <Text style={styles.delivery_address_popup_save_btn_text}>Сохранить</Text>
                     </TouchableOpacity>
 
                     {show_addresses_list &&
-                    <View style={styles.address_wrapper}>
+                      <View style={styles.address_wrapper}>
+                        <View style={styles.address_wrapper_child}>
+                            <TouchableOpacity style={styles.delivery_address_popup_close_btn}
+                                              onPress={() => {
+                                                  setShowAddressesList(false)
+                                              }}
+                            >
+                                <PaymentCloseIcon/>
+                            </TouchableOpacity>
+                            {found_address_box.length > 0
+                                ?
+                                <ScrollView style={styles.address_wrapper_child_scrollbox}>
+                                    {found_address_box.map((item, index) => {
+                                        console.log(item.address, 'iteeeeem');
+                                        return(
+                                            <TouchableOpacity key={index}
+                                                              style={styles.address_item}
+                                                              onPress={() => {
+                                                                  selectSetAddress(item)
+                                                              }}
+                                            >
 
-                        {found_address_box.length > 0
-                            ?
-                            <ScrollView style={styles.address_wrapper_child}>
-                                {found_address_box.map((item, index) => {
-                                    console.log(item.address, 'iteeeeem');
-                                    return(
-                                        <TouchableOpacity key={index}
-                                                          style={styles.address_item}
-                                                          onPress={() => {
-                                                              selectAddress(item)
-                                                          }}
-                                        >
+                                                <Text style={styles.address_item_text}>{item.address}</Text>
+                                            </TouchableOpacity>
+                                        )
 
-                                            <Text style={styles.address_item_text}>{item.address}</Text>
-                                        </TouchableOpacity>
-                                    )
-
-                                })}
-                            </ScrollView>
-                            :
-                            <View style={styles.address_wrapper_not_found}>
-                                <Text style={styles.address_wrapper_not_found_text}>
-                                    Адрес не найден
-                                </Text>
-                            </View>
+                                    })}
+                                </ScrollView>
+                                :
+                                <View style={styles.address_wrapper_not_found}>
+                                    <Text style={styles.address_wrapper_not_found_text}>
+                                        Адрес не найден
+                                    </Text>
+                                </View>
 
 
-                        }
+                            }
+                        </View>
+
                     </View>
                     }
 
@@ -557,7 +585,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         left: 0,
         bottom: 0,
-        top: 100,
+        top: 95,
         alignSelf: 'center',
         alignItems: 'center',
         justifyContent: 'center',
@@ -658,23 +686,22 @@ const styles = StyleSheet.create({
         textAlign: 'center'
     },
     address_wrapper: {
-        width: '89%',
-        height:  300,
-        backgroundColor: '#ffffff',
-        shadowOffset: {width: 2, height: 5},
-        shadowColor: 'rgb(0, 0, 0)',
-        shadowOpacity: 0.2,
-        shadowRadius: 19,
-        elevation: 10,
-        borderBottomLeftRadius: 15,
-        borderBottomRightRadius: 15,
-        paddingTop: 30,
-        paddingBottom: 47,
-        paddingHorizontal: 20,
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: windowHeight,
         position: 'absolute',
+        left: 0,
+        bottom: 0,
+        top: 0,
         alignSelf: 'center',
-        zIndex: 9999999999999,
-        top: 174,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     address_item: {
         width: '100%',
@@ -686,16 +713,34 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     address_wrapper_child: {
+        width: '90%',
+        height:  300,
+        backgroundColor: '#ffffff',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.2,
+        shadowRadius: 19,
+        elevation: 10,
+        borderRadius: 15,
+        paddingTop: 50,
+        paddingBottom: 47,
+        paddingHorizontal: 20,
+        position: 'absolute',
+        alignSelf: 'center',
+        zIndex: 9999999999999,
+        top: 174,
+
+    },
+    address_wrapper_child_scrollbox: {
         flex: 1,
         width: '100%',
-        height: 200,
-
     },
     address_wrapper_not_found: {
         width: '100%',
         alignItems: 'center',
         alignSelf: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        paddingTop: 70
     },
 
     address_wrapper_not_found_text: {
@@ -708,9 +753,8 @@ const styles = StyleSheet.create({
         fontWeight: 500,
         color: '#4E7234',
         fontSize: 21,
-        width: '90%',
-    }
-
+        width: '100%',
+    },
 
 
 });
