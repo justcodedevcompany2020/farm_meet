@@ -6,7 +6,7 @@ import { StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {getProfileData} from '../../../store/actions/farmMeatActions';
+import {getProfileData, login} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import AddAddressIcon from '../../../assets/svg/add_address_icon'
 import EditAddressIcon from '../../../assets/svg/edit_btn'
@@ -40,6 +40,7 @@ import BackIcon from '../../../assets/svg/back_icon';
 import BasketBlock from '../../includes/BasketBlock';
 import PaymentCloseIcon from '../../../assets/svg/payment_close_icon';
 import QuestionIcon from '../../../assets/svg/question_icon';
+import EditIcon from '../../../assets/svg/edit_btn';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -56,6 +57,9 @@ function Profile (props) {
     const [found_address_box, setFoundAddressesBox] = useState([]);
     const [show_addresses_list, setShowAddressesList] = useState(false);
     const [selected_address, setSelectedAddress] = useState(null);
+    const [edit_name, setEditName] = useState(profile_info.last_name);
+    const [edit_name_popup, setEditNamePopup] = useState(false);
+
 
 
 
@@ -74,6 +78,7 @@ function Profile (props) {
                 setKeyboardVisible(true);
             },
         );
+
         const keyboardDidHideListener = Keyboard.addListener(
             'keyboardDidHide',
             () => {
@@ -232,6 +237,31 @@ function Profile (props) {
     //     setShowAddressesList(false)
     // }
 
+    const updateUserInfo = async () => {
+        let formdata = new FormData();
+
+        formdata.append("user", profile_info.phone);
+        formdata.append("first_name", edit_name);
+
+        let requestOptions = {
+            method: 'POST',
+            body: formdata,
+            redirect: 'follow'
+        };
+
+        let response = await fetch("https://farm-meat.site/accounts/update_user/", requestOptions);
+        let data = await response.json();
+
+        console.log(data, 'ddddddddddd');
+        if (response.status == 200) {
+            setEditNamePopup(false)
+            dispatch(getProfileData())
+
+
+        } else {
+            //errors
+        }
+    }
 
     return (
         <SafeAreaView style={[styles.container]}>
@@ -262,7 +292,16 @@ function Profile (props) {
                     <View style={styles.profile_info_box_personal_info}>
                         <View style={styles.profile_info_box_title_info_wrapper}>
                             <Text style={styles.profile_info_box_title}>Имя:</Text>
-                            <Text style={styles.profile_info_box_text}>{profile_info.last_name}</Text>
+                            <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                                <Text style={styles.profile_info_box_text}>{profile_info.last_name}</Text>
+                                <TouchableOpacity style={{marginLeft: 50, position: 'relative', bottom: 5}}
+                                                  onPress={() => {
+                                                      setEditNamePopup(true)
+                                                  }}
+                                >
+                                    <EditIcon/>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                         <View style={styles.profile_info_box_title_info_wrapper}>
                             <Text style={styles.profile_info_box_title}>Номер телефона:</Text>
@@ -425,6 +464,35 @@ function Profile (props) {
 
                 </View>
             </View>
+            }
+
+            {edit_name_popup &&
+                <View style={styles.edit_name_popup}>
+                    <View style={styles.edit_name_popup_wrapper}>
+                        <TouchableOpacity style={styles.edit_name_popup_close_btn}
+                                          onPress={() => {
+                                              setEditNamePopup(false)
+                                          }}
+                        >
+                            <PaymentCloseIcon/>
+                        </TouchableOpacity>
+                        <View style={styles.edit_name_popup_input_field_wrapper}>
+                            <TextInput
+                                style={styles.edit_name_input_field}
+                                onChangeText={(val) => setEditName(val)}
+                                value={edit_name}
+                                placeholder='ВВЕДИТЕ ИМЯ'
+                                placeholderTextColor='#CFCFCF'
+
+                            />
+                        </View>
+                        <TouchableOpacity style={styles.edit_name_popup_save_btn} onPress={() => {
+                            updateUserInfo()
+                        }}>
+                            <Text style={styles.edit_name_popup_save_btn_text}>Сохранить</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             }
 
         </SafeAreaView>
@@ -756,5 +824,74 @@ const styles = StyleSheet.create({
         width: '100%',
     },
 
+    edit_name_popup: {
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: windowHeight,
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        top: 0,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    edit_name_popup_wrapper: {
+        width: '90%',
+        backgroundColor: '#ffffff',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.2,
+        shadowRadius: 19,
+        elevation: 10,
+        borderRadius: 15,
+        paddingTop: 70,
+        paddingBottom: 47,
+        paddingHorizontal: 20,
+    },
+    edit_name_input_field: {
+        width: '100%',
+        backgroundColor: '#ffffff',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.2,
+        shadowRadius: 19,
+        elevation: 10,
+        borderRadius: 5,
+        color: '#8C8C8C',
+        fontWeight: '400',
+        fontSize: 14,
+        paddingVertical: 14,
+        paddingHorizontal: 12,
+    },
+    edit_name_popup_input_field_wrapper: {
+        width: '100%',
+        marginBottom: 30
+    },
+    edit_name_popup_save_btn: {
+        width: 182,
+        alignItems: 'center',
+        justifyContent: 'center',
+        alignSelf: 'center',
+        backgroundColor: '#4E7234',
+        borderRadius: 7,
+        height: 36,
 
+    },
+    edit_name_popup_save_btn_text: {
+        color: '#ffffff',
+        fontWeight: '400',
+        fontSize: 18,
+    },
+    edit_name_popup_close_btn: {
+        position: 'absolute',
+        right: 20,
+        top: 20,
+    }
 });

@@ -87,10 +87,14 @@ function Basket (props) {
     const [isEnabled2, setIsEnabled2] = useState(false);
     const toggleSwitch = () => {
         setIsEnabled(isEnabled => !isEnabled)
+        setIsEnabled2(false)
+        setShowPickupInfo(false)
         setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
     };
     const toggleSwitch2 = () => {
         setIsEnabled2(isEnabled2 => !isEnabled2)
+        setIsEnabled(false)
+        setShowDeliveryInfo(false)
         setShowPickupInfo(show_pickup_info => !show_pickup_info)
     };
 
@@ -607,13 +611,15 @@ function Basket (props) {
                                 </TouchableOpacity>
                             }
 
-                            <TouchableOpacity style={styles.delivery_address_info_edit_btn}
-                                onPress={() => {
-                                    setDeliveryAddressPopup(true)
-                                }}
-                            >
+                            {profile_info?.addresses?.length > 0 &&
+                                <TouchableOpacity style={styles.delivery_address_info_edit_btn}
+                                                  onPress={() => {
+                                                      setDeliveryAddressPopup(true)
+                                                  }}
+                                >
                                     <EditIcon/>
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            }
                         </View>
                     </View>
 
@@ -710,6 +716,8 @@ function Basket (props) {
                                     style={styles.payment_methods_popup_item_btn}
                                       onPress={() => {
                                           setShowChoosePaymentMethodIcon('card')
+                                          setShowPaymentMethodsPopup(false)
+
                                       }}
                                 >
                                     <View style={styles.payment_methods_popup_item_btn_icon_title_wrapper}>
@@ -732,7 +740,9 @@ function Basket (props) {
                                     style={styles.payment_methods_popup_item_btn}
                                     onPress={() => {
                                                       setShowChoosePaymentMethodIcon('cash')
-                                                  }}
+                                                        setShowPaymentMethodsPopup(false)
+
+                                    }}
                                 >
                                     <View style={styles.payment_methods_popup_item_btn_icon_title_wrapper}>
                                         <View style={styles.payment_methods_popup_item_btn_icon}>
@@ -822,13 +832,13 @@ function Basket (props) {
                     {show_addresses_list &&
                     <View style={styles.address_wrapper}>
                         <View style={styles.address_wrapper_child}>
-                            <TouchableOpacity style={styles.delivery_address_popup_close_btn}
-                                              onPress={() => {
-                                                  setShowAddressesList(false)
-                                              }}
-                            >
-                                <PaymentCloseIcon/>
-                            </TouchableOpacity>
+                            {/*<TouchableOpacity style={styles.delivery_address_popup_close_btn}*/}
+                            {/*                  onPress={() => {*/}
+                            {/*                      setShowAddressesList(false)*/}
+                            {/*                  }}*/}
+                            {/*>*/}
+                            {/*    <PaymentCloseIcon/>*/}
+                            {/*</TouchableOpacity>*/}
                             {found_address_box.length > 0
                                 ?
                                 <ScrollView style={styles.address_wrapper_child_scrollbox}>
@@ -868,7 +878,7 @@ function Basket (props) {
             {order_success &&
                 <View style={styles.order_success_popup}>
                     <View style={styles.order_success_popup_wrapper}>
-                        <Text style={styles.order_success_popup_title}>Заказ успешно создан</Text>
+                        <Text style={styles.order_success_popup_title}>Заказ принят спасибо</Text>
                     </View>
                 </View>
             }
@@ -876,6 +886,9 @@ function Basket (props) {
         </SafeAreaView>
     );
 }
+
+export default Basket;
+
 
 const styles = StyleSheet.create({
     container: {
@@ -1565,4 +1578,3 @@ const styles = StyleSheet.create({
     },
 });
 
-export default Basket;
