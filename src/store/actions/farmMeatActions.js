@@ -10,11 +10,7 @@ import {
   SET_SINGLE_PRODUCT_DATA,
   SET_BASKET_INFO,
   SET_PROFILE_INFO,
-
-
-
-
-
+  SET_SEARCH_PRODUCT,
 
 } from './type';
 import AuthService from '../services/authService';
@@ -59,6 +55,13 @@ export const getCatalogData = () => dispatch => {
     } catch (error) {
       reject(error);
     }
+  });
+};
+
+export const setSearchProduct = (search_result) => dispatch => {
+  dispatch({
+    type: SET_SEARCH_PRODUCT,
+    payload: search_result,
   });
 };
 
