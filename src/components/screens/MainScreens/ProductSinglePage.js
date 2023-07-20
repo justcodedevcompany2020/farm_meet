@@ -280,30 +280,30 @@ function ProductSinglePage (props) {
                             </View>
                         }
                     </View>
-                    <View style={styles.single_product_recommendations_wrapper}>
-                        <Text style={styles.single_product_recommendations_title}>Рекомендации:</Text>
-                        <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.single_product_recommendations_items_wrapper}>
-                            {recommendations.map((item, index) => {
-                                return(
-                                   <TouchableOpacity style={styles.single_product_recommendations_item} key={index}>
-                                        <View style={styles.single_product_recommendations_item_img}>
-                                            <Image source={item.img} style={styles.single_product_recommendations_item_img_child}/>
-                                        </View>
-                                       <Text style={styles.single_product_recommendations_item_title}>
-                                           {item.title}
-                                       </Text>
-                                       <View style={styles.single_product_recommendations_item_price_add_basket_btn_wrapper}>
-                                           <Text style={styles.single_product_recommendations_item_price}>{item.price}Р\шт</Text>
-                                           <TouchableOpacity style={styles.single_product_recommendations_basket_btn}>
-                                               <RecommendationsBasketIcon/>
-                                           </TouchableOpacity>
-                                       </View>
-                                   </TouchableOpacity>
-                                )
+                    {/*<View style={styles.single_product_recommendations_wrapper}>*/}
+                    {/*    <Text style={styles.single_product_recommendations_title}>Рекомендации:</Text>*/}
+                    {/*    <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.single_product_recommendations_items_wrapper}>*/}
+                    {/*        {recommendations.map((item, index) => {*/}
+                    {/*            return(*/}
+                    {/*               <TouchableOpacity style={styles.single_product_recommendations_item} key={index}>*/}
+                    {/*                    <View style={styles.single_product_recommendations_item_img}>*/}
+                    {/*                        <Image source={item.img} style={styles.single_product_recommendations_item_img_child}/>*/}
+                    {/*                    </View>*/}
+                    {/*                   <Text style={styles.single_product_recommendations_item_title}>*/}
+                    {/*                       {item.title}*/}
+                    {/*                   </Text>*/}
+                    {/*                   <View style={styles.single_product_recommendations_item_price_add_basket_btn_wrapper}>*/}
+                    {/*                       <Text style={styles.single_product_recommendations_item_price}>{item.price}Р\шт</Text>*/}
+                    {/*                       <TouchableOpacity style={styles.single_product_recommendations_basket_btn}>*/}
+                    {/*                           <RecommendationsBasketIcon/>*/}
+                    {/*                       </TouchableOpacity>*/}
+                    {/*                   </View>*/}
+                    {/*               </TouchableOpacity>*/}
+                    {/*            )*/}
 
-                            })}
-                        </ScrollView>
-                    </View>
+                    {/*        })}*/}
+                    {/*    </ScrollView>*/}
+                    {/*</View>*/}
                 </View>
 
             </ScrollView>

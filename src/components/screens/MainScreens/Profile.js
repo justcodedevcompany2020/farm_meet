@@ -355,6 +355,17 @@ function Profile (props) {
             {delivery_address_popup &&
             <View style={styles.delivery_address_popup}>
                 <View style={styles.delivery_address_popup_wrapper}>
+                    <View style={styles.profile_header_wrapper}>
+                        <TouchableOpacity style={styles.profile_header_back_btn}
+                                 onPress={() => {
+                                     setDeliveryAddressPopup(false)
+                                 }}
+                        >
+                            <BackIcon/>
+                            <Text style={styles.profile_header_title}>Профиль</Text>
+                        </TouchableOpacity>
+
+                    </View>
                     <View style={styles.delivery_address_popup_box}>
                         <TouchableOpacity style={styles.delivery_address_popup_close_btn}
                                           onPress={() => {
@@ -516,8 +527,8 @@ const styles = StyleSheet.create({
         width: '100%',
         marginBottom: 11,
         position: 'relative',
-        borderWidth: 2,
-        borderColor: '#EFF4D6',
+        borderBottomWidth: 2,
+        borderBottomColor: '#EFF4D6',
         paddingTop: 12,
         paddingBottom: 11,
     },
@@ -649,14 +660,16 @@ const styles = StyleSheet.create({
         elevation: 999,
         zIndex: 999999,
         width: '100%',
-        height: '100%',
+        height:  windowHeight + 40,
         position: 'absolute',
         left: 0,
         bottom: 0,
-        top: 95,
+        top: 0,
         alignSelf: 'center',
         alignItems: 'center',
         justifyContent: 'center',
+        // paddingTop: 20
+
 
     },
     delivery_address_popup_wrapper: {
@@ -683,6 +696,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 45,
         position: 'relative',
+        marginTop: 20
     },
     delivery_address_popup_save_btn: {
         width: 182,
@@ -700,8 +714,15 @@ const styles = StyleSheet.create({
     },
     delivery_address_popup_close_btn: {
         position: 'absolute',
-        top: 20,
-        right: 20,
+        top: 0,
+        right: 0,
+        paddingTop: 30,
+        paddingBottom: 30,
+        paddingRight: 20,
+        paddingLeft: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
     },
     delivery_address_popup_title: {
         color: '#4E7234',

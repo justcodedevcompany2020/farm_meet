@@ -72,6 +72,7 @@ function Basket (props) {
     const [delivery_address_popup, setDeliveryAddressPopup] = useState(false);
     const [show_addresses_list, setShowAddressesList] = useState(false);
     const [found_address_box, setFoundAddressesBox] = useState([]);
+    const [payment_method, setPaymentMethod] = useState('Наличными при получении');
 
 
     const [order_success, setOrderSuccess] = useState(false);
@@ -84,12 +85,17 @@ function Basket (props) {
 
 
     const [isEnabled, setIsEnabled] = useState(false);
-    const [isEnabled2, setIsEnabled2] = useState(false);
+    const [isEnabled2, setIsEnabled2] = useState(true);
     const toggleSwitch = () => {
-        setIsEnabled(isEnabled => !isEnabled)
-        setIsEnabled2(false)
-        setShowPickupInfo(false)
-        setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
+        if (basket_info[0]?.total < 2000) {
+            setIsEnabled(false)
+        } else {
+            setIsEnabled(isEnabled => !isEnabled)
+            setIsEnabled2(false)
+            setShowPickupInfo(false)
+            setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
+        }
+
     };
     const toggleSwitch2 = () => {
         setIsEnabled2(isEnabled2 => !isEnabled2)
@@ -246,7 +252,7 @@ function Basket (props) {
 
             let raw = JSON.stringify({
                 session: session,
-                payment_method: 1,
+                payment_method: 0,
                 delivery_address: last_address == '' ? null : last_address,
                 products: products
             });
@@ -471,51 +477,53 @@ function Basket (props) {
 
                     })}
                 </View>
-                <View style={styles.add_to_order_wrapper}>
-                    <Text style={styles.add_to_order_title}>Добавить к заказу?</Text>
-                    {add_to_basket.length > 2 ?
-                        <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.add_to_order_items_wrapper}>
-                            {add_to_basket.map((item, index) => {
-                                return(
-                                    <View key={index} style={styles.add_to_order_item}>
-                                        <TouchableOpacity style={styles.add_to_order_item_img}>
-                                            <Image  style={styles.add_to_order_item_img_child}  source={item.img} />
-                                        </TouchableOpacity>
-                                        <View style={styles.add_to_order_item_info_box}>
-                                            <Text style={styles.add_to_order_item_title}>{item.title}</Text>
-                                            <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>
-                                            <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>
+                {/*<View style={styles.add_to_order_wrapper}>*/}
+                {/*    <Text style={styles.add_to_order_title}>Добавить к заказу?</Text>*/}
+                {/*    {add_to_basket.length > 2 ?*/}
+                {/*        <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.add_to_order_items_wrapper}>*/}
+                {/*            {add_to_basket.map((item, index) => {*/}
+                {/*                return(*/}
+                {/*                    <View key={index} style={styles.add_to_order_item}>*/}
+                {/*                        <TouchableOpacity style={styles.add_to_order_item_img}>*/}
+                {/*                            <Image  style={styles.add_to_order_item_img_child}  source={item.img} />*/}
+                {/*                        </TouchableOpacity>*/}
+                {/*                        <View style={styles.add_to_order_item_info_box}>*/}
+                {/*                            <Text style={styles.add_to_order_item_title}>{item.title}</Text>*/}
+                {/*                            <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*/}
+                {/*                            <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>*/}
 
-                                        </View>
-                                    </View>
-                                )
+                {/*                        </View>*/}
+                {/*                    </View>*/}
+                {/*                )*/}
 
-                            })}
+                {/*            })}*/}
 
-                        </ScrollView>
-                        :
-                        <View style={styles.add_to_order_items_wrapper2}>
-                            {add_to_basket.map((item, index) => {
-                                return(
-                                    <View key={index} style={styles.add_to_order_item}>
-                                        <TouchableOpacity style={styles.add_to_order_item_img}>
-                                            <Image  style={styles.add_to_order_item_img_child}  source={item.img} />
-                                        </TouchableOpacity>
-                                        <View style={styles.add_to_order_item_info_box}>
-                                            <Text style={styles.add_to_order_item_title}>{item.title}</Text>
-                                            <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>
-                                            <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>
+                {/*        </ScrollView>*/}
+                {/*        :*/}
+                {/*        <View style={styles.add_to_order_items_wrapper2}>*/}
+                {/*            {add_to_basket.map((item, index) => {*/}
+                {/*                return(*/}
+                {/*                    <View key={index} style={styles.add_to_order_item}>*/}
+                {/*                        <TouchableOpacity style={styles.add_to_order_item_img}>*/}
+                {/*                            <Image  style={styles.add_to_order_item_img_child}  source={item.img} />*/}
+                {/*                        </TouchableOpacity>*/}
+                {/*                        <View style={styles.add_to_order_item_info_box}>*/}
+                {/*                            <Text style={styles.add_to_order_item_title}>{item.title}</Text>*/}
+                {/*                            <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*/}
+                {/*                            <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>*/}
 
-                                        </View>
-                                    </View>
-                                )
+                {/*                        </View>*/}
+                {/*                    </View>*/}
+                {/*                )*/}
 
-                            })}
+                {/*            })}*/}
 
-                        </View>
-                    }
+                {/*        </View>*/}
+                {/*    }*/}
 
-                </View>
+                {/*</View>*/}
+
+
                 <View style={styles.basket_main_info_details_items_wrapper}>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title}>Скидки</Text>
@@ -765,6 +773,17 @@ function Basket (props) {
             {delivery_address_popup &&
             <View style={styles.delivery_address_popup}>
                 <View style={styles.delivery_address_popup_wrapper}>
+                    <View style={styles.basket_header_wrapper}>
+                        <TouchableOpacity style={styles.basket_header_back_btn}
+                                          onPress={() => {
+                                              setDeliveryAddressPopup(false)
+                                          }}
+                        >
+                            <BackIcon/>
+                            <Text style={styles.basket_header_title}>КОРЗИНА</Text>
+                        </TouchableOpacity>
+
+                    </View>
                     <View style={styles.delivery_address_popup_box}>
                         <TouchableOpacity style={styles.delivery_address_popup_close_btn}
                                           onPress={() => {
@@ -904,8 +923,8 @@ const styles = StyleSheet.create({
         width: '100%',
         marginBottom: 18,
         position: 'relative',
-        borderWidth: 2,
-        borderColor: '#EFF4D6',
+        borderBottomWidth: 2,
+        borderBottomColor: '#EFF4D6',
         paddingTop: 12,
         paddingBottom: 11,
     },
@@ -1353,11 +1372,11 @@ const styles = StyleSheet.create({
         elevation: 999,
         zIndex: 999999,
         width: '100%',
-        height: '100%',
+        height: windowHeight + 40,
         position: 'absolute',
         left: 0,
         bottom: 0,
-        top: 100,
+        top: 0,
         alignSelf: 'center',
         alignItems: 'center',
         justifyContent: 'center',
@@ -1387,6 +1406,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 45,
         position: 'relative',
+        marginTop: 20,
     },
     delivery_address_popup_save_btn: {
         width: 182,
@@ -1404,8 +1424,15 @@ const styles = StyleSheet.create({
     },
     delivery_address_popup_close_btn: {
         position: 'absolute',
-        top: 20,
-        right: 20,
+        top: 0,
+        right: 0,
+        paddingTop: 30,
+        paddingBottom: 30,
+        paddingRight: 20,
+        paddingLeft: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999,
     },
     delivery_address_popup_title: {
         color: '#4E7234',
