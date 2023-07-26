@@ -17,6 +17,10 @@ import CardIcon  from '../../../assets/svg/card_icon'
 import CashIcon  from '../../../assets/svg/cash_icon'
 import ChoosePaymentMethodIcon  from '../../../assets/svg/choose_payment_method_icon'
 import EditIcon  from '../../../assets/svg/edit_btn'
+import { WebView } from 'react-native-webview';
+
+
+
 
 import {
     Text,
@@ -65,14 +69,17 @@ function Basket (props) {
     const [promo_code, setPromoCode] = useState('');
     const [comment_courier, setCommentCourier] = useState('');
     const [show_payment_methods_popup, setShowPaymentMethodsPopup] = useState(false);
-    const [show_choose_payment_method_icon, setShowChoosePaymentMethodIcon] = useState('');
+    const [choose_payment_method, setChoosePaymentMethod] = useState('Наличными при получении');
 
     const [show_delivery_info, setShowDeliveryInfo] = useState(false);
     const [show_pickup_info, setShowPickupInfo] = useState(false);
     const [delivery_address_popup, setDeliveryAddressPopup] = useState(false);
     const [show_addresses_list, setShowAddressesList] = useState(false);
     const [found_address_box, setFoundAddressesBox] = useState([]);
-    const [payment_method, setPaymentMethod] = useState('Наличными при получении');
+    const [payment_method, setPaymentMethod] = useState('1');
+    const [order_id, setOrderId] = useState('');
+    const [payment_url, setPaymentUrl] = useState('');
+    const [show_payment_url, setShowPaymentUrl] = useState(false);
 
 
     const [order_success, setOrderSuccess] = useState(false);
@@ -183,8 +190,6 @@ function Basket (props) {
         }
     }
 
-
-
     const add_to_basket = [
         {
             id: 1,
@@ -252,7 +257,7 @@ function Basket (props) {
 
             let raw = JSON.stringify({
                 session: session,
-                payment_method: 0,
+                payment_method: payment_method,
                 delivery_address: last_address == '' ? null : last_address,
                 products: products
             });
@@ -267,20 +272,70 @@ function Basket (props) {
             let response = await fetch("https://farm-meat.site/shop/orders/create/", requestOptions);
             let data = await response.json();
 
-            console.log(data, 'order');
+            console.log(data.order_id, 'order');
             if (response.status == 200) {
-                setOrderSuccess(true)
-                setTimeout(() => {
-                    setOrderSuccess(false)
-                    props.navigation.navigate('HomeCatalogScreen')
-                }, 2000)
-               // dispatch(getBasketInfo())
+
+
+                setOrderId(data.order_id)
+
+                if (payment_method == '1') {
+                    setOrderSuccess(true)
+                    setTimeout(() => {
+                        setOrderSuccess(false)
+                        props.navigation.navigate('HomeCatalogScreen')
+                    }, 2000)
+                    dispatch(getBasketInfo())
+                } else if (payment_method == '0') {
+
+
+                    let myHeaders = new Headers();
+                    myHeaders.append("Authorization", `Token ${token}`);
+
+                    let formdata = new FormData();
+                    formdata.append("id", data.order_id);
+                    formdata.append("session", session);
+
+                    let requestOptions = {
+                        method: 'POST',
+                        headers: myHeaders,
+                        body: formdata,
+                        redirect: 'follow'
+                    };
+
+                    fetch("https://farm-meat.site/shop/orders/payment/", requestOptions)
+                        .then(response => response.json())
+                        .then(result => {console.log(result, 'url')
+                            if (result.hasOwnProperty('message')) {
+                                if (result.message == "Payment url create successful.") {
+                                    if (result.hasOwnProperty('url')) {
+                                        setShowPaymentUrl(true)
+                                        setPaymentUrl(result.url)
+                                    }
+                                }
+                            }
+
+                        })
+                        .catch(error => console.log('error', error));
+
+
+
+
+
+
+                }
+
+
+
+
             }
 
         } catch (error) {
             // reject(error);
             console.log(error);
         }
+
+
+
     }
 
 
@@ -668,6 +723,9 @@ function Basket (props) {
                         <Text style={styles.basket_payment_method_text}>
                             Выберите способ оплаты
                         </Text>
+                        {choose_payment_method != '' &&
+                            <Text style={{ fontWeight: '600', color: '#4E7234', fontSize: 16,}}>{choose_payment_method}</Text>
+                        }
                     </View>
                     <View style={styles.basket_payment_method_btn}>
                         <PaymentIcon/>
@@ -723,7 +781,8 @@ function Basket (props) {
                                 <TouchableOpacity
                                     style={styles.payment_methods_popup_item_btn}
                                       onPress={() => {
-                                          setShowChoosePaymentMethodIcon('card')
+                                          setChoosePaymentMethod('Переводом СБП')
+                                          setPaymentMethod('0')
                                           setShowPaymentMethodsPopup(false)
 
                                       }}
@@ -735,7 +794,7 @@ function Basket (props) {
 
                                         <Text style={styles.payment_methods_popup_item_btn_title}>Переводом СБП</Text>
                                     </View>
-                                    {show_choose_payment_method_icon == 'card' &&
+                                    {choose_payment_method == 'Переводом СБП' &&
                                         <View style={styles.payment_methods_popup_item_btn_choosen_icon}>
                                             <ChoosePaymentMethodIcon/>
                                         </View>
@@ -747,8 +806,9 @@ function Basket (props) {
                                 <TouchableOpacity
                                     style={styles.payment_methods_popup_item_btn}
                                     onPress={() => {
-                                                      setShowChoosePaymentMethodIcon('cash')
-                                                        setShowPaymentMethodsPopup(false)
+                                        setChoosePaymentMethod('Наличными при получении')
+                                        setPaymentMethod('1')
+                                        setShowPaymentMethodsPopup(false)
 
                                     }}
                                 >
@@ -759,7 +819,7 @@ function Basket (props) {
 
                                         <Text style={styles.payment_methods_popup_item_btn_title}>Наличными при получении</Text>
                                     </View>
-                                    {show_choose_payment_method_icon == 'cash' &&
+                                    {choose_payment_method == 'Наличными при получении' &&
                                         <View style={styles.payment_methods_popup_item_btn_choosen_icon}>
                                             <ChoosePaymentMethodIcon/>
                                         </View>
@@ -900,6 +960,44 @@ function Basket (props) {
                         <Text style={styles.order_success_popup_title}>Заказ принят спасибо</Text>
                     </View>
                 </View>
+            }
+
+            {show_payment_url &&
+            <View style={styles.payment_popup}>
+                <View style={styles.payment_popup_wrapper}>
+                    <TouchableOpacity style={{right: 20, top: 20, position: 'absolute', zIndex: 9999}} onPress={() => setShowPaymentUrl(false)}>
+
+                        <Svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width={35}
+                            height={35}
+                            viewBox="0 0 35 35"
+                            fill="none"
+                        >
+                            <Path
+                                d="M17.499 17.78L9.141 9.36m-.063 16.779l8.421-8.358-8.421 8.358zm8.421-8.358l8.421-8.359L17.5 17.78zm0 0l8.358 8.42-8.358-8.42z"
+                                stroke="#4E7234"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                            />
+                        </Svg>
+
+                    </TouchableOpacity>
+                    <WebView
+                        style={{
+                            height: '100%',
+                            width: '100%',
+                            flex: 1,
+                        }}
+                        useWebKit={true}
+                        source={{ uri: payment_url }}
+                        onNavigationStateChange={(webViewState)=>{
+                        }}
+                        javaScriptEnabled = {true}
+                        // domStorageEnabled = {true}
+                    />
+                </View>
+            </View>
             }
 
         </SafeAreaView>
@@ -1501,6 +1599,31 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         // justifyContent: 'center',
         paddingTop: 70,
+    },
+    payment_popup: {
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        alignSelf: 'center',
+        alignItems: 'center',
+        // justifyContent: 'center',
+        // paddingTop: 70,
+    },
+    payment_popup_wrapper: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#ffffff',
+        position: 'relative'
+
     },
     order_success_popup_wrapper: {
         shadowOffset: {width: 2, height: 5},

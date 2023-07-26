@@ -10,7 +10,7 @@ import {
   SET_SINGLE_PRODUCT_DATA,
   SET_BASKET_INFO,
   SET_PROFILE_INFO,
-  SET_SEARCH_PRODUCT,
+  SET_SEARCH_PRODUCT, SET_MY_ORDERS_INFO,
 
 } from './type';
 import AuthService from '../services/authService';
@@ -291,6 +291,47 @@ export const getProfileData = () => dispatch => {
       if (response.status == 200) {
         dispatch({
           type: SET_PROFILE_INFO,
+          payload: data,
+        });
+      }
+
+      resolve(true);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+export const getMyOrdersData = () => dispatch => {
+  return new Promise( async (resolve, reject) => {
+    let userInfo = await AsyncStorage.getItem('user');
+    userInfo = JSON.parse(userInfo)
+    let token =  userInfo.token;
+    let session =  userInfo.session;
+    console.log(token, 'token');
+    console.log(session, 'session');
+
+    try {
+
+      let myHeaders = new Headers();
+      myHeaders.append("Authorization", `Token ${token}`);
+
+      let formdata = new FormData();
+      formdata.append("session", session);
+
+      let requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: formdata,
+        redirect: 'follow'
+      };
+
+      let response = await fetch("https://farm-meat.site/shop/orders/", requestOptions);
+      let data = await response.json();
+
+      console.log(data, 'my orders');
+      if (response.status == 200) {
+        dispatch({
+          type: SET_MY_ORDERS_INFO,
           payload: data,
         });
       }

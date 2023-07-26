@@ -10,6 +10,7 @@ import {
   SET_SINGLE_PRODUCT_DATA,
   SET_BASKET_INFO,
   SET_PROFILE_INFO,
+  SET_MY_ORDERS_INFO,
   SET_SEARCH_PRODUCT,
 
 } from '../actions/type';
@@ -27,6 +28,7 @@ const initialState = {
 
   basket_info: [],
   profile_info: [],
+  my_orders_info: [],
   search_product: '',
 
 };
@@ -93,6 +95,11 @@ export default function farmMeatReducer(state = initialState, action) {
       return {
         ...state,
         profile_info: payload
+      };
+    case SET_MY_ORDERS_INFO:
+      return {
+        ...state,
+        my_orders_info: payload
       };
     case SET_SEARCH_PRODUCT:
       return {

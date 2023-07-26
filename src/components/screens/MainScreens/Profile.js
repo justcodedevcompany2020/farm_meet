@@ -94,8 +94,8 @@ function Profile (props) {
 
     const context = useContext(AuthContext);
 
-    const redirectToSignInScreen = () => {
-        props.navigation.navigate('SignInScreen')
+    const redirectToMyOrdersScreen = () => {
+        props.navigation.navigate('MyOrdersScreen')
     }
 
     const selectSetAddress = async (item) => {
@@ -280,7 +280,7 @@ function Profile (props) {
             </View>
             <ScrollView style={styles.profile_wrapper}>
                 <View style={styles.profile_wrapper_tab_buttons}>
-                    <TouchableOpacity style={styles.profile_wrapper_tab_my_orders_btn}>
+                    <TouchableOpacity style={styles.profile_wrapper_tab_my_orders_btn} onPress={() => {redirectToMyOrdersScreen()}}>
                         <Text style={styles.profile_wrapper_tab_my_orders_btn_text}>Мои заказы</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.profile_wrapper_tab_my_details_btn}>

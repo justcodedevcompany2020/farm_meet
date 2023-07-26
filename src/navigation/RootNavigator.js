@@ -15,6 +15,7 @@ import CatalogProductsScreen from '../components/screens/MainScreens/CatalogProd
 import ProductSinglePageScreen from '../components/screens/MainScreens/ProductSinglePage';
 import BasketScreen from '../components/screens/MainScreens/Basket';
 import ProfileScreen from '../components/screens/MainScreens/Profile';
+import MyOrdersScreen from '../components/screens/MainScreens/MyOrders';
 import SearchScreen from '../components/screens/MainScreens/Seacrh';
 
 // const Tab = createBottomTabNavigator();
@@ -56,6 +57,14 @@ const RootNavigator = () => {
                         <Stack.Screen
                             name="ProfileScreen"
                             component={ProfileScreen}
+                            options={({route}) => ({
+                                tabBarButton: () => null,
+                                tabBarStyle: {display: 'none'},
+                            })}
+                        />
+                        <Stack.Screen
+                            name="MyOrdersScreen"
+                            component={MyOrdersScreen}
                             options={({route}) => ({
                                 tabBarButton: () => null,
                                 tabBarStyle: {display: 'none'},
