@@ -29,7 +29,8 @@ import {
     ScrollView,
     Platform,
     Dimensions,
-    Keyboard
+    Keyboard,
+    Linking
 } from 'react-native';
 
 import {
@@ -144,6 +145,20 @@ function HomeCatalog (props) {
         setSearch('')
         props.navigation.navigate('SearchScreen')
     }
+    const redirectToMyOrdersPage = () => {
+        props.navigation.navigate('MyOrdersScreen')
+    }
+    const makePhoneCall = () => {
+        let phoneNumber = '';
+
+        if (Platform.OS === 'android') {
+            phoneNumber = 'tel:${+79162912782}';
+        } else {
+            phoneNumber = 'telprompt:${+79162912782}';
+        }
+
+        Linking.openURL(phoneNumber);
+    };
 
     return (
         <SafeAreaView style={[styles.container]}>
@@ -191,10 +206,20 @@ function HomeCatalog (props) {
                             }
 
 
-                            <TouchableOpacity style={styles.home_catalog_delivery_phone_button}>
+                            <TouchableOpacity
+                                style={styles.home_catalog_delivery_phone_button}
+                                onPress={() => {
+                                    redirectToMyOrdersPage()
+                                }}
+                            >
                                 <DeliveryIcon/>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.home_catalog_delivery_phone_button}>
+                            <TouchableOpacity
+                                style={styles.home_catalog_delivery_phone_button}
+                                onPress={() => {
+                                    makePhoneCall()
+                                }}
+                            >
                                 <PhoneIcon/>
                             </TouchableOpacity>
                         </View>
@@ -415,8 +440,8 @@ const styles = StyleSheet.create({
 
     },
     home_catalog_item_img: {
-        width: 150,
-        height: 120,
+        width: 140,
+        height: 110,
         position: 'absolute',
         right: 0,
         bottom: 0,
@@ -429,7 +454,7 @@ const styles = StyleSheet.create({
     home_catalog_item_title: {
         color: '#4C7032',
         fontWeight: '400',
-        fontSize: 17,
+        fontSize: 16,
     },
     home_catalog_interesting_questions_title: {
         color: '#4E7234',

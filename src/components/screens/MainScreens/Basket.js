@@ -401,9 +401,9 @@ function Basket (props) {
         //     return false;
         //
         // }
-        let address = '';
+        let address = 'Россия';
         if (delivery_address_city.length != 0) {
-            address = delivery_address_city
+            address += delivery_address_city
         }
 
         if (delivery_address_office != 0) {
@@ -965,24 +965,24 @@ function Basket (props) {
             {show_payment_url &&
             <View style={styles.payment_popup}>
                 <View style={styles.payment_popup_wrapper}>
-                    <TouchableOpacity style={{right: 20, top: 20, position: 'absolute', zIndex: 9999}} onPress={() => setShowPaymentUrl(false)}>
+                    {/*<TouchableOpacity style={{right: 20, top: 20, position: 'absolute', zIndex: 9999}} onPress={() => setShowPaymentUrl(false)}>*/}
 
-                        <Svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            width={35}
-                            height={35}
-                            viewBox="0 0 35 35"
-                            fill="none"
-                        >
-                            <Path
-                                d="M17.499 17.78L9.141 9.36m-.063 16.779l8.421-8.358-8.421 8.358zm8.421-8.358l8.421-8.359L17.5 17.78zm0 0l8.358 8.42-8.358-8.42z"
-                                stroke="#4E7234"
-                                strokeWidth={2}
-                                strokeLinecap="round"
-                            />
-                        </Svg>
+                    {/*    <Svg*/}
+                    {/*        xmlns="http://www.w3.org/2000/svg"*/}
+                    {/*        width={35}*/}
+                    {/*        height={35}*/}
+                    {/*        viewBox="0 0 35 35"*/}
+                    {/*        fill="none"*/}
+                    {/*    >*/}
+                    {/*        <Path*/}
+                    {/*            d="M17.499 17.78L9.141 9.36m-.063 16.779l8.421-8.358-8.421 8.358zm8.421-8.358l8.421-8.359L17.5 17.78zm0 0l8.358 8.42-8.358-8.42z"*/}
+                    {/*            stroke="#4E7234"*/}
+                    {/*            strokeWidth={2}*/}
+                    {/*            strokeLinecap="round"*/}
+                    {/*        />*/}
+                    {/*    </Svg>*/}
 
-                    </TouchableOpacity>
+                    {/*</TouchableOpacity>*/}
                     <WebView
                         style={{
                             height: '100%',
@@ -992,6 +992,22 @@ function Basket (props) {
                         useWebKit={true}
                         source={{ uri: payment_url }}
                         onNavigationStateChange={(webViewState)=>{
+                            // console.log(payment_url, 'payment_url');
+                            console.log(webViewState.url, 'WebView onNavigationStateChange')
+                            if(webViewState.url.search('https://farm-meat.site/shop/orders/payment/view/') !== -1)
+                            {
+                                console.log('success')
+                                setShowPaymentUrl(false)
+                                setOrderSuccess(true)
+                                setTimeout(() => {
+                                    setOrderSuccess(false)
+                                    props.navigation.navigate('HomeCatalogScreen')
+                                }, 2000)
+                                dispatch(getBasketInfo())
+
+                            }
+
+
                         }}
                         javaScriptEnabled = {true}
                         // domStorageEnabled = {true}

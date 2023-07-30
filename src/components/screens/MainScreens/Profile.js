@@ -159,9 +159,9 @@ function Profile (props) {
         //     return false;
         //
         // }
-        let address = '';
+        let address = 'Россия';
         if (delivery_address_city.length != 0) {
-             address = delivery_address_city
+             address += delivery_address_city
         }
 
         if (delivery_address_office != 0) {

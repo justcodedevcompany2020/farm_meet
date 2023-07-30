@@ -224,8 +224,8 @@ export const addToBasket = (id, amount) => dispatch => {
     userInfo = JSON.parse(userInfo)
     let token =  userInfo.token;
     let session =  userInfo.session;
-    console.log(token, 'token');
-    console.log(session, 'session');
+    // console.log(token, 'token');
+    // console.log(session, 'session');
 
     try {
 
@@ -249,6 +249,8 @@ export const addToBasket = (id, amount) => dispatch => {
 
       console.log(data, 'basket info');
       if (response.status == 200) {
+        console.log(amount, 'basketabsx asnxassssss');
+
         dispatch(getBasketInfo())
       }
 
