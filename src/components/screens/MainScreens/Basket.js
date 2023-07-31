@@ -105,10 +105,16 @@ function Basket (props) {
 
     };
     const toggleSwitch2 = () => {
-        setIsEnabled2(isEnabled2 => !isEnabled2)
-        setIsEnabled(false)
-        setShowDeliveryInfo(false)
-        setShowPickupInfo(show_pickup_info => !show_pickup_info)
+        if (basket_info[0]?.total < 2000) {
+            setIsEnabled2(true)
+
+        } else {
+            setIsEnabled2(isEnabled2 => !isEnabled2)
+            setIsEnabled(false)
+            setShowDeliveryInfo(false)
+            setShowPickupInfo(show_pickup_info => !show_pickup_info)
+        }
+
     };
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -316,7 +322,6 @@ function Basket (props) {
 
                         })
                         .catch(error => console.log('error', error));
-
 
 
 
@@ -990,9 +995,11 @@ function Basket (props) {
                             flex: 1,
                         }}
                         useWebKit={true}
-                        source={{ uri: payment_url }}
+                        source={{ uri: payment_url}}
+                        androidHardwareAccelerationDisabled={true}
+                        allowFileAccess={true}
                         onNavigationStateChange={(webViewState)=>{
-                            // console.log(payment_url, 'payment_url');
+                            console.log(payment_url, 'payment_url');
                             console.log(webViewState.url, 'WebView onNavigationStateChange')
                             if(webViewState.url.search('https://farm-meat.site/shop/orders/payment/view/') !== -1)
                             {

@@ -33,7 +33,8 @@ import {
     ScrollView,
     Platform,
     Dimensions,
-    Keyboard
+    Keyboard,
+    Linking
 } from 'react-native';
 
 import {
@@ -58,6 +59,7 @@ function Profile (props) {
     useEffect(() => {
         setShowLoader(true)
     }, []);
+
     useEffect(() => {
         dispatch(getMyOrdersData())
     }, [dispatch]);
@@ -267,7 +269,7 @@ function Profile (props) {
 
        switch(status_pay) {
            case 0:
-               status_text = 'Ожидается';
+               status_text = 'Ожидается оплата';
                break;
            case 1:
                status_text = 'Оплачено';
@@ -277,6 +279,7 @@ function Profile (props) {
                break;
            default:
        }
+
 
        return status_text;
     }
@@ -308,6 +311,19 @@ function Profile (props) {
         setAboutOrderPopup(false)
         setOrderSuccess(true)
     }
+
+
+    const makePhoneCall = () => {
+        let phoneNumber = '';
+
+        if (Platform.OS === 'android') {
+            phoneNumber = 'tel:${+79162912782}';
+        } else {
+            phoneNumber = 'telprompt:${+79162912782}';
+        }
+
+        Linking.openURL(phoneNumber);
+    };
 
     if (show_loader) {
         return (
@@ -415,7 +431,12 @@ function Profile (props) {
                                                       }}>
                                                           <Text style={styles.more_product_item_order_details_btn_text}>Детали заказа</Text>
                                                       </TouchableOpacity>
-                                                      <TouchableOpacity style={styles.more_product_item_call_btn}>
+                                                      <TouchableOpacity
+                                                          style={styles.more_product_item_call_btn}
+                                                          onPress={() => {
+                                                              makePhoneCall()
+                                                          }}
+                                                      >
                                                           <Text style={styles.more_product_item_call_btn_text}>Связаться с нами</Text>
                                                       </TouchableOpacity>
                                                   </View>
@@ -526,7 +547,7 @@ function Profile (props) {
                     <TouchableOpacity style={{position: 'absolute', right: 20, top: 20}} onPress={() => {setOrderSuccess(false)}}>
                         <CloseIcon/>
                     </TouchableOpacity>
-                    <Text style={styles.order_success_popup_title}>Заказ принят спасибо</Text>
+                    <Text style={styles.order_success_popup_title}>Добавлено в корзину!</Text>
                 </View>
             </View>
             }

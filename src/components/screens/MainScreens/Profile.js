@@ -606,7 +606,8 @@ const styles = StyleSheet.create({
         color: '#B9D149',
         fontWeight: 400,
         fontSize: 20,
-        marginBottom: 6
+        marginBottom: 6,
+        width: '70%'
     },
     profile_address_info_box: {
         width: '100%',

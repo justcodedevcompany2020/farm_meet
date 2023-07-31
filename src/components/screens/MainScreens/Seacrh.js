@@ -64,7 +64,6 @@ function CatalogProducts (props) {
         dispatch(getProductsByCatalogCategoryId(catalog_id))
     }, [dispatch]);
 
-
     useEffect(() => {
 
         const unsubscribe = props.navigation.addListener('focus', () => {
@@ -76,7 +75,7 @@ function CatalogProducts (props) {
 
     const context = useContext(AuthContext);
 
-    const getSearchInfo = async () => {
+    const getSearchInfo = async (val = '') => {
         let userInfo = await AsyncStorage.getItem('user');
         userInfo = JSON.parse(userInfo)
         let token =  userInfo.token;
@@ -84,6 +83,7 @@ function CatalogProducts (props) {
         console.log(token, 'token');
         console.log(session, 'session');
 
+        let search_value = val == '' ? search : val
         try {
 
             let myHeaders = new Headers();
@@ -91,7 +91,7 @@ function CatalogProducts (props) {
 
             let formdata = new FormData();
             formdata.append("session", session);
-            formdata.append("search", search);
+            formdata.append("search", search_value);
             formdata.append("category", '');
 
             let requestOptions = {
@@ -107,7 +107,6 @@ function CatalogProducts (props) {
             console.log(data, 'searchInfo');
             if (response.status == 200) {
                 setSearchInfo(data)
-
             }
 
             resolve(true);
@@ -125,7 +124,7 @@ function CatalogProducts (props) {
 
     const  findInBasket = (id) => {
         let productId = id;
-        let objectsWithProductId = basket_info[0].products.filter(obj => obj.product.id === productId);
+        let objectsWithProductId = basket_info[0].products?.filter(obj => obj.product.id === productId);
         let hasObjectsWithProductId = objectsWithProductId.length > 0;
         return hasObjectsWithProductId ? objectsWithProductId : null;
     }
@@ -152,18 +151,21 @@ function CatalogProducts (props) {
 
             <ScrollView style={styles.catalog_products_items_main_wrapper}>
                 <View style={styles.home_catalog_search_input_field_icon_wrapper}>
-                    <TouchableOpacity onPress={() => {
-                        getSearchInfo()
-                    }}>
+                    <TouchableOpacity>
                         <SearchIcon/>
                     </TouchableOpacity>
                     <TextInput
                         style={styles.home_catalog_search_input_field}
                         onChangeText={(val) =>
-                        {
-                            setSearch(val)
-                            dispatch(setSearchProduct(val))
-                        }
+                            {
+                                setSearch(val)
+                                if (val.length == 0) {
+                                    setSearchInfo([])
+                                } else {
+                                    getSearchInfo(val)
+                                }
+                            }
+
                         }
                         value={search}
                         placeholder='Название продукта'
@@ -173,7 +175,7 @@ function CatalogProducts (props) {
                     {search.length > 0 &&
                         <TouchableOpacity style={styles.delete_icon} onPress={() => {
                             setSearch('')
-                            getSearchInfo()
+                            setSearchInfo([])
                         }}>
                             <DeleteIcon/>
                         </TouchableOpacity>
@@ -182,7 +184,7 @@ function CatalogProducts (props) {
                 </View>
                 <View style={styles.catalog_products_items_wrapper}>
                     {search_info.length > 0 ?
-                        <View style={{width: '100%'}}>
+                        <View style={{width: '100%', flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap'}}>
                             {search_info.map((item, index) => {
                                 return(
                                     <TouchableOpacity key={index} style={styles.catalog_products_item}
@@ -479,5 +481,6 @@ const styles = StyleSheet.create({
         color: '#B8B8B8',
         fontSize: 16,
         marginLeft: 4,
+        width: '75%',
     },
 });

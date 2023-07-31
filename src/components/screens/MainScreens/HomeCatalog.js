@@ -14,6 +14,8 @@ import  CloseIcon from '../../../assets/svg/close_icon';
 import {useDispatch, useSelector, Provider} from 'react-redux';
 import {getCatalogData, setCatalogId, setSearchProduct} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
+import Orientation from 'react-native-orientation-locker';
+
 
 import {
     Text,
@@ -48,6 +50,13 @@ const windowHeight = Dimensions.get('window').height;
 function HomeCatalog (props) {
     const dispatch = useDispatch();
     const {catalog_data} = useSelector(state => state.farmMeatReducer);
+    useEffect(() => {
+        // Lock the orientation to portrait mode
+        Orientation.lockToPortrait();
+        return () => {
+            Orientation.unlockAllOrientations();
+        };
+    }, []);
 
     useEffect(() => {
         dispatch(getCatalogData())
@@ -436,15 +445,23 @@ const styles = StyleSheet.create({
         height: 160,
         marginBottom: 15,
         paddingTop: 8,
-        paddingLeft: 12,
+        // paddingLeft: 12,
+        justifyContent: 'space-between'
 
     },
     home_catalog_item_img: {
-        width: 140,
+        width: '100%',
         height: 110,
-        position: 'absolute',
-        right: 0,
-        bottom: 0,
+        // position: 'absolute',
+        // right: 0,
+        // bottom: 0,
+        borderTopLeftRadius: 14,
+        borderTopRightRadius: 14,
+        borderBottomLeftRadius: 14,
+        borderBottomRightRadius: 14,
+        overflow: 'hidden',
+        marginTop: 5
+
     },
     home_catalog_item_img_child: {
         width: '100%',
@@ -455,6 +472,8 @@ const styles = StyleSheet.create({
         color: '#4C7032',
         fontWeight: '400',
         fontSize: 16,
+        paddingLeft: 12,
+        // marginBottom: 5
     },
     home_catalog_interesting_questions_title: {
         color: '#4E7234',

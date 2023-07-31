@@ -20,6 +20,7 @@ import PlusIcon from '../../../assets/svg/plus_big_icon'
 import BasketBlock from '../../includes/BasketBlock';
 
 
+
 import {
     Text,
     Alert,
@@ -54,14 +55,24 @@ function ProductSinglePage (props) {
     const {single_product_data, product_id, basket_info} = useSelector(state => state.farmMeatReducer);
 
     const [show_feedback, setShowFeedback] = useState(false);
+    const [show_loader, setShowLoader] = useState(true);
 
     useEffect(() => {
         dispatch(getSingleProductByProductId(product_id))
     }, [dispatch]);
 
     useEffect(() => {
+        setShowLoader(true)
+    }, []);
+
+    useEffect(() => {
         dispatch(getBasketInfo())
+        setTimeout(() => {
+            setShowLoader(false)
+        }, 1700)
     }, [dispatch]);
+
+
 
     const context = useContext(AuthContext);
 
@@ -142,6 +153,17 @@ function ProductSinglePage (props) {
         dispatch(addToBasket(id, amount))
 
     }
+
+    if (show_loader) {
+        return (
+            <View style={{backgroundColor: '#ffffff', position: 'absolute', top: 0, left: 0,  justifyContent: 'center', alignItems: 'center', alignSelf: 'center', width: '100%',  height: '100%', }}>
+
+                <ActivityIndicator size="large" color="#4E7234" />
+
+            </View>
+        )
+    }
+
 
 
     return (
@@ -234,52 +256,52 @@ function ProductSinglePage (props) {
 
                         }
                     </View>
-                    <View style={styles.single_product_feedbacks_wrapper}>
-                        <TouchableOpacity style={styles.single_product_feedback_btn}
-                            onPress={() => {
-                                setShowFeedback(!show_feedback)
-                            }}
-                        >
-                                <View style={styles.single_product_feedback_btn_title_star_icons_wrapper}>
-                                        <Text style={styles.single_product_feedback_btn_title}>
-                                            Отзывы
-                                            <View style={{paddingHorizontal: 2}}></View>
-                                            <Text style={styles.single_product_feedback_btn_title2}>87</Text>
-                                        </Text>
-                                    <View style={styles.single_product_feedback_btn_stars_wrapper}>
-                                        <StarFullIcon/>
-                                        <StarFullIcon/>
-                                        <StarFullIcon/>
-                                        <StarFullIcon/>
-                                        <StarNotFullIcon/>
-                                    </View>
-                                </View>
-                               <Text style={styles.single_product_feedback_btn_rating_info}>4.6 / 5</Text>
-                        </TouchableOpacity>
-                        {show_feedback &&
-                            <View style={styles.single_product_feedbacks_items_wrapper}>
-                                {feedback.map((item, index) => {
-                                    return(
-                                        <View key={index} style={styles.single_product_feedbacks_item}>
-                                            <Text style={styles.single_product_feedbacks_item_name}>{item.name}</Text>
-                                            <View style={styles.single_product_feedbacks_item_stars_date_wrapper}>
-                                                <View style={styles.single_product_feedbacks_item_stars_wrapper}>
-                                                    <SmallStarFullIcon/>
-                                                    <SmallStarFullIcon/>
-                                                    <SmallStarFullIcon/>
-                                                    <SmallStarFullIcon/>
-                                                    <SmallStarNotFullIcon/>
-                                                </View>
-                                                <Text style={styles.single_product_feedbacks_item_date}>{item.date}</Text>
-                                            </View>
-                                            <Text style={styles.single_product_feedbacks_item_feedback_text}>{item.feedback}</Text>
-                                        </View>
-                                    )
+                    {/*<View style={styles.single_product_feedbacks_wrapper}>*/}
+                        {/*<TouchableOpacity style={styles.single_product_feedback_btn}*/}
+                        {/*    onPress={() => {*/}
+                        {/*        setShowFeedback(!show_feedback)*/}
+                        {/*    }}*/}
+                        {/*>*/}
+                        {/*        <View style={styles.single_product_feedback_btn_title_star_icons_wrapper}>*/}
+                        {/*                <Text style={styles.single_product_feedback_btn_title}>*/}
+                        {/*                    Отзывы*/}
+                        {/*                    <View style={{paddingHorizontal: 2}}></View>*/}
+                        {/*                    <Text style={styles.single_product_feedback_btn_title2}>87</Text>*/}
+                        {/*                </Text>*/}
+                        {/*            <View style={styles.single_product_feedback_btn_stars_wrapper}>*/}
+                        {/*                <StarFullIcon/>*/}
+                        {/*                <StarFullIcon/>*/}
+                        {/*                <StarFullIcon/>*/}
+                        {/*                <StarFullIcon/>*/}
+                        {/*                <StarNotFullIcon/>*/}
+                        {/*            </View>*/}
+                        {/*        </View>*/}
+                        {/*       <Text style={styles.single_product_feedback_btn_rating_info}>4.6 / 5</Text>*/}
+                        {/*</TouchableOpacity>*/}
+                        {/*{show_feedback &&*/}
+                        {/*    <View style={styles.single_product_feedbacks_items_wrapper}>*/}
+                        {/*        {feedback.map((item, index) => {*/}
+                        {/*            return(*/}
+                        {/*                <View key={index} style={styles.single_product_feedbacks_item}>*/}
+                        {/*                    <Text style={styles.single_product_feedbacks_item_name}>{item.name}</Text>*/}
+                        {/*                    <View style={styles.single_product_feedbacks_item_stars_date_wrapper}>*/}
+                        {/*                        <View style={styles.single_product_feedbacks_item_stars_wrapper}>*/}
+                        {/*                            <SmallStarFullIcon/>*/}
+                        {/*                            <SmallStarFullIcon/>*/}
+                        {/*                            <SmallStarFullIcon/>*/}
+                        {/*                            <SmallStarFullIcon/>*/}
+                        {/*                            <SmallStarNotFullIcon/>*/}
+                        {/*                        </View>*/}
+                        {/*                        <Text style={styles.single_product_feedbacks_item_date}>{item.date}</Text>*/}
+                        {/*                    </View>*/}
+                        {/*                    <Text style={styles.single_product_feedbacks_item_feedback_text}>{item.feedback}</Text>*/}
+                        {/*                </View>*/}
+                        {/*            )*/}
 
-                                })}
-                            </View>
-                        }
-                    </View>
+                        {/*        })}*/}
+                        {/*    </View>*/}
+                        {/*}*/}
+                    {/*</View>*/}
                     {/*<View style={styles.single_product_recommendations_wrapper}>*/}
                     {/*    <Text style={styles.single_product_recommendations_title}>Рекомендации:</Text>*/}
                     {/*    <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.single_product_recommendations_items_wrapper}>*/}
