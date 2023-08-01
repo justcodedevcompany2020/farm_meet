@@ -50,6 +50,7 @@ const windowHeight = Dimensions.get('window').height;
 function HomeCatalog (props) {
     const dispatch = useDispatch();
     const {catalog_data} = useSelector(state => state.farmMeatReducer);
+
     useEffect(() => {
         // Lock the orientation to portrait mode
         Orientation.lockToPortrait();
@@ -293,26 +294,28 @@ function HomeCatalog (props) {
                         >
                             <CloseIcon/>
                         </TouchableOpacity>
-                        <Text style={styles.interesting_question_popup_title}>{active_interest.question}</Text>
-                        {active_interest.answer1 &&
-                             <Text style={styles.interesting_question_popup_text}>{active_interest.answer1}</Text>
 
-                        }
-                        {active_interest.answer2 &&
-                             <Text style={styles.interesting_question_popup_text}>{active_interest.answer2}</Text>
-                        }
-                        {active_interest.answer3 &&
+                        <ScrollView style={{flex: 1, width: '100%'}}>
+                            <Text style={styles.interesting_question_popup_title}>{active_interest.question}</Text>
+
+                            {active_interest.answer1 &&
+                            <Text style={styles.interesting_question_popup_text}>{active_interest.answer1}</Text>
+
+                            }
+                            {active_interest.answer2 &&
+                            <Text style={styles.interesting_question_popup_text}>{active_interest.answer2}</Text>
+                            }
+                            {active_interest.answer3 &&
                             <Text style={styles.interesting_question_popup_text}>{active_interest.answer3}</Text>
-                        }
-                        {active_interest.answer4 &&
+                            }
+                            {active_interest.answer4 &&
                             <Text style={styles.interesting_question_popup_text}>{active_interest.answer4}</Text>
-                        }
+                            }
 
-                        {active_interest.answer5 &&
-                              <Text style={styles.interesting_question_popup_text}>{active_interest.answer5}</Text>
-                        }
-
-
+                            {active_interest.answer5 &&
+                            <Text style={styles.interesting_question_popup_text}>{active_interest.answer5}</Text>
+                            }
+                        </ScrollView>
 
                     </View>
                 </View>
@@ -547,6 +550,8 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingHorizontal: 18,
         paddingBottom: 54,
+        maxHeight: 648,
+        height: '100%'
     },
     interesting_question_popup_title: {
         color: '#4E7234',

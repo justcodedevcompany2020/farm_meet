@@ -269,7 +269,7 @@ function Profile (props) {
 
        switch(status_pay) {
            case 0:
-               status_text = 'Ожидается оплата';
+               status_text = 'Ожидает оплату';
                break;
            case 1:
                status_text = 'Оплачено';

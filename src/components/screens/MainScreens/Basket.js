@@ -93,6 +93,8 @@ function Basket (props) {
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [isEnabled2, setIsEnabled2] = useState(true);
+
+
     const toggleSwitch = () => {
         if (basket_info[0]?.total < 2000) {
             setIsEnabled(false)
@@ -143,6 +145,14 @@ function Basket (props) {
         dispatch(getBasketInfo())
     }, [dispatch]);
 
+
+    useEffect(() => {
+        if (basket_info[0]?.total < 2000) {
+            setIsEnabled(false)
+            setIsEnabled2(true)
+        }
+        console.log(basket_info[0]?.total, 'basket_info[0]?.total');
+    }, [basket_info]);
 
     useEffect(() => {
 

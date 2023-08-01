@@ -323,7 +323,7 @@ function Profile (props) {
                 </View>
 
                 <View style={styles.profile_edit_address_info_box}>
-                    <ScrollView style={{width: '100%', flex: 1}}>
+                    <ScrollView style={{width: '100%',}}>
                         {profile_info?.addresses?.map((item, index) => {
                             console.log(item.text, 'iteeeeem');
                             return(
