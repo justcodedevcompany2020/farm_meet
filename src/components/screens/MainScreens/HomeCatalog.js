@@ -111,6 +111,7 @@ function HomeCatalog (props) {
     const [search, setSearch] = useState('');
     const [active_interest, setActiveInterest] = useState({});
     const [show_interesting_question_popup, setShowInterestingQuestionPopup] = useState(false);
+    const [show_about_delivery_popup, setShowAboutDeliveryPopup] = useState(false);
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
     useEffect(() => {
@@ -219,7 +220,7 @@ function HomeCatalog (props) {
                             <TouchableOpacity
                                 style={styles.home_catalog_delivery_phone_button}
                                 onPress={() => {
-                                    redirectToMyOrdersPage()
+                                    setShowAboutDeliveryPopup(true)
                                 }}
                             >
                                 <DeliveryIcon/>
@@ -319,6 +320,37 @@ function HomeCatalog (props) {
 
                     </View>
                 </View>
+            }
+            {show_about_delivery_popup &&
+                <View style={styles.interesting_question_popup}>
+                <View style={styles.interesting_question_popup_wrapper}>
+                    <TouchableOpacity style={styles.interesting_question_popup_close_icon}
+                                      onPress={() => {
+                                          setShowAboutDeliveryPopup(false)
+                                      }}
+                    >
+                        <CloseIcon/>
+                    </TouchableOpacity>
+
+                    <ScrollView style={{flex: 1, width: '100%'}}>
+                        <Text style={styles.interesting_question_popup_title}>Доставка</Text>
+
+                        <Text style={styles.interesting_question_popup_text}>
+                            Доставка осуществляется бесплатно при заказе на сумму от 3 000 рублей. При заказе на сумму менее 3 000 рублей стоимость доставки составит 200 рублей. Вся продукция изготавливается под заказ, а мясные наборы доставляются без заморозки в течение суток после разруба и упаковки – мясо не замораживается. Мы принимаем предзаказы от покупателей, готовим продукцию и назначаем дату доставки.
+                        </Text>
+                        <Text style={styles.interesting_question_popup_text}>
+                            В одном направлении мы возим товары 1-2 раза в неделю. За день до доставки мы согласуем время прибытия курьера. На месте курьер поднимет ваш заказ на любой этаж и занесет, если потребуется. Таким образом, вы получаете продукцию практически в день изготовления с запасом срока годности.
+                        </Text>
+                        <Text style={styles.interesting_question_popup_text}>
+                            Товары перевозятся в специально оборудованных автомобилях в нужных температурных диапазонах. Все продукты разложены по коробкам с учетом товарного соседства и веса.
+                        </Text>
+
+
+
+                    </ScrollView>
+
+                </View>
+            </View>
             }
 
 

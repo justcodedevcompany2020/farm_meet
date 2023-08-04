@@ -92,29 +92,36 @@ function Basket (props) {
 
 
     const [isEnabled, setIsEnabled] = useState(false);
-    const [isEnabled2, setIsEnabled2] = useState(true);
+    const [isEnabled2, setIsEnabled2] = useState(false);
 
 
     const toggleSwitch = () => {
         if (basket_info[0]?.total < 2000) {
             setIsEnabled(false)
-        } else {
-            setIsEnabled(isEnabled => !isEnabled)
-            setIsEnabled2(false)
-            setShowPickupInfo(false)
-            setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
-        }
-
-    };
-    const toggleSwitch2 = () => {
-        if (basket_info[0]?.total < 2000) {
             setIsEnabled2(true)
 
         } else {
+            setIsEnabled(isEnabled => !isEnabled)
             setIsEnabled2(isEnabled2 => !isEnabled2)
+            // setShowPickupInfo(false)
+            // setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
+        }
+
+    };
+
+
+
+    const toggleSwitch2 = () => {
+        if (basket_info[0]?.total < 2000) {
+            setIsEnabled2(true)
             setIsEnabled(false)
-            setShowDeliveryInfo(false)
-            setShowPickupInfo(show_pickup_info => !show_pickup_info)
+
+
+        } else {
+            setIsEnabled2(isEnabled2 => !isEnabled2)
+            setIsEnabled(isEnabled => !isEnabled)
+            // setShowDeliveryInfo(false)
+            // setShowPickupInfo(show_pickup_info => !show_pickup_info)
         }
 
     };
@@ -150,7 +157,11 @@ function Basket (props) {
         if (basket_info[0]?.total < 2000) {
             setIsEnabled(false)
             setIsEnabled2(true)
+        } else {
+            setIsEnabled(true)
+            setIsEnabled2(false)
         }
+
         console.log(basket_info[0]?.total, 'basket_info[0]?.total');
     }, [basket_info]);
 
@@ -672,7 +683,7 @@ function Basket (props) {
 
                     </View>
 
-                    {show_delivery_info &&
+                    {isEnabled &&
                     <View style={styles.delivery_info_wrapper}>
                         <Text style={styles.delivery_info_wrapper_title}>Адрес доставки</Text>
                         <View style={styles.delivery_address_info_edit_btn_wrapper}>
@@ -702,7 +713,7 @@ function Basket (props) {
                     </View>
 
                     }
-                    {show_pickup_info &&
+                    {isEnabled2 &&
                     <View style={styles.delivery_info_wrapper}>
                         <Text style={styles.delivery_info_wrapper_title}>Условия и адрес самовывоза</Text>
                         <Text style={styles.pickup_info_wrapper_info}>

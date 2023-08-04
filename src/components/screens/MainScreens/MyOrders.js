@@ -65,8 +65,68 @@ function Profile (props) {
     }, [dispatch]);
 
 
-    useEffect(() => {
-        setMyOrdersInfoLocal(my_orders_info);
+    useEffect( () => {
+        const checkStatus  = async () => {
+            let my_orders_info_ = my_orders_info;
+            // console.log(my_orders_info_, 'jjxjsnzqnzsjqnzjq');
+            for (let i = 0; i < my_orders_info_.length; i++) {
+                // if (my_orders_info_[i].status == 0 ||my_orders_info_[i].status == 1 || my_orders_info_[i].status == 2 || my_orders_info_[i].status == 3 || my_orders_info_[i].status == 4 ) {
+                    let userInfo = await AsyncStorage.getItem('user');
+                    userInfo = JSON.parse(userInfo)
+                    let token =  userInfo.token;
+                    let session =  userInfo.session;
+
+                    try {
+
+                        let myHeaders = new Headers();
+                        myHeaders.append("Authorization", `Token ${token}`);
+
+                        let formdata = new FormData();
+                        formdata.append("session", session);
+
+                        let requestOptions = {
+                            method: 'POST',
+                            headers: myHeaders,
+                            body: formdata,
+                            redirect: 'follow'
+                        };
+
+                        let response = await fetch(`https://farm-meat.site/shop/orders/${my_orders_info_[i].id}/`, requestOptions);
+                        let data = await response.json();
+
+
+                        if (response.status == 200) {
+                            my_orders_info_[i].more_product = data
+
+                            // setMyOrdersInfoLocal(prevOrders => {
+                            //     return prevOrders.map(order => {
+                            //         if (order.id === my_orders_info_[i].id) {
+                            //             // return {order, more_product: data };
+                            //             order.more_product = data
+                            //             setMoreProductInfo(order.more_product)
+                            //             return order;
+                            //         } else {
+                            //             return order;
+                            //         }
+                            //     });
+                            // });
+                        }
+
+
+
+                    } catch (error) {
+                        // reject(error);
+                    }
+
+                // }
+            }
+
+            setMyOrdersInfoLocal(my_orders_info_);
+
+        }
+
+
+        checkStatus()
         setTimeout(() => {
             setShowLoader(false)
         }, 1700)
@@ -140,71 +200,75 @@ function Profile (props) {
         return formattedDate;
     }
 
-    const getMoreAboutOrder  = async (id) => {
+    const getMoreAboutOrder  = async (item) => {
         // console.log(id, 'order id');
-        let userInfo = await AsyncStorage.getItem('user');
-        userInfo = JSON.parse(userInfo)
-        let token =  userInfo.token;
-        let session =  userInfo.session;
+        // let userInfo = await AsyncStorage.getItem('user');
+        // userInfo = JSON.parse(userInfo)
+        // let token =  userInfo.token;
+        // let session =  userInfo.session;
         // console.log(token, 'token');
         // console.log(session, 'session');
 
-        try {
-
-            let myHeaders = new Headers();
-            myHeaders.append("Authorization", `Token ${token}`);
-
-            let formdata = new FormData();
-            formdata.append("session", session);
-
-            let requestOptions = {
-                method: 'POST',
-                headers: myHeaders,
-                body: formdata,
-                redirect: 'follow'
-            };
-
-            let response = await fetch(`https://farm-meat.site/shop/orders/${id}/`, requestOptions);
-            let data = await response.json();
-
-            let my_orders_info_local_ = my_orders_info_local;
-
-            if (response.status == 200) {
-                setAboutOrderInfo(data)
-
-                // for (let i = 0; i < my_orders_info_local_.length ; i++) {
-                //
-                //     console.log(my_orders_info_local_[i].id == id, 'my_orders_info_local[i].id == id');
-                //     if (my_orders_info_local_[i].id == id ) {
-                //         my_orders_info_local_[i].more_product = data;
-                //         break
-                //     }
-                //
-                // }
-                //
-                // setMyOrdersInfoLocal(my_orders_info_local_);
-                // console.log(my_orders_info_local_[0].more_product, 'moreeeeeeeeeee');
-
-                setMyOrdersInfoLocal(prevOrders => {
-                    return prevOrders.map(order => {
-                        if (order.id === id) {
-                            // return {order, more_product: data };
-                            order.more_product = data
-                            setMoreProductInfo(order.more_product)
-                            return order;
-                        } else {
-                            return order;
-                        }
-                    });
-                });
-
-            }
-
-
-
-        } catch (error) {
-            // reject(error);
-        }
+        setMoreProductInfo(item);
+        setAboutOrderPopup(true)
+        // try {
+        //
+        //     let myHeaders = new Headers();
+        //     myHeaders.append("Authorization", `Token ${token}`);
+        //
+        //     let formdata = new FormData();
+        //     formdata.append("session", session);
+        //
+        //     let requestOptions = {
+        //         method: 'POST',
+        //         headers: myHeaders,
+        //         body: formdata,
+        //         redirect: 'follow'
+        //     };
+        //
+        //     let response = await fetch(`https://farm-meat.site/shop/orders/${id}/`, requestOptions);
+        //     let data = await response.json();
+        //
+        //     let my_orders_info_local_ = my_orders_info_local;
+        //
+        //     if (response.status == 200) {
+        //
+        //         setAboutOrderInfo(data)
+        //
+        //         for (let i = 0; i < my_orders_info_local_.length ; i++) {
+        //
+        //             if (my_orders_info_local_[i].id == id ) {
+        //                 // my_orders_info_local_[i].more_product = data;
+        //                 setMoreProductInfo(my_orders_info_local_[i]);
+        //                 setAboutOrderPopup(true)
+        //                 break
+        //             }
+        //
+        //         }
+        //         //
+        //         // setMyOrdersInfoLocal(my_orders_info_local_);
+        //         // console.log(my_orders_info_local_[0].more_product, 'moreeeeeeeeeee');
+        //
+        //         // setMyOrdersInfoLocal(prevOrders => {
+        //         //     return prevOrders.map(order => {
+        //         //         if (order.id === id) {
+        //         //             // return {order, more_product: data };
+        //         //             order.more_product = data
+        //         //             setMoreProductInfo(order.more_product)
+        //         //             return order;
+        //         //         } else {
+        //         //             return order;
+        //         //         }
+        //         //     });
+        //         // });
+        //
+        //     }
+        //
+        //
+        //
+        // } catch (error) {
+        //     // reject(error);
+        // }
 
     }
 
@@ -285,7 +349,7 @@ function Profile (props) {
     }
 
     const repeatOrder = async () => {
-        let products = more_product_info.products;
+        let products = more_product_info.more_product.products;
 
         for (let i = 0; i < products.length; i++) {
              let product_id = products[i].product.id;
@@ -390,14 +454,16 @@ function Profile (props) {
                                             <Text style={styles.my_order_item_status_pay_info}>{checkStatusPay(item.status_pay)}</Text>
 
                                         </View>
-                                        {!item.more_product &&
-                                            <TouchableOpacity style={styles.my_order_item_more_info_btn} onPress={() => {getMoreAboutOrder(item.id)}}>
+                                        {item.status == 5 || item.status == 6 ?
+                                            <TouchableOpacity style={styles.my_order_item_more_info_btn} onPress={() => {getMoreAboutOrder(item)}}>
                                                 <Text style={styles.my_order_item_more_info_btn_text}>Подробнее</Text>
                                             </TouchableOpacity>
+                                            :
+                                            null
                                         }
 
 
-                                        {item.hasOwnProperty('more_product') &&
+                                        {item.status == 0 || item.status == 1 || item.status == 2 || item.status == 3 || item.status == 4 ?
                                               <View style={styles.more_products_wrapper}>
                                                   <View style={styles.more_products_items_wrapper}>
                                                       {item.more_product.products.map((item, index) => {
@@ -427,6 +493,8 @@ function Profile (props) {
                                                   </View>
                                                   <View style={styles.more_product_item_order_details_call_btns_wrapper}>
                                                       <TouchableOpacity style={styles.more_product_item_order_details_btn} onPress={() => {
+                                                          setMoreProductInfo(item)
+
                                                           setAboutOrderPopup(true)
                                                       }}>
                                                           <Text style={styles.more_product_item_order_details_btn_text}>Детали заказа</Text>
@@ -442,6 +510,9 @@ function Profile (props) {
                                                   </View>
 
                                               </View>
+                                            :
+                                            null
+
                                         }
 
 
@@ -472,24 +543,26 @@ function Profile (props) {
                         </TouchableOpacity>
                     </View>
                     <View style={styles.about_order_popup_order_number_date_info_box}>
-                        <Text style={styles.about_order_order_number}>Заказ №{about_order_info.id}</Text>
-                        <Text style={styles.about_order_popup_date_info}>{getTime2(about_order_info.date_created)}</Text>
+                        <Text style={styles.about_order_order_number}>Заказ №{more_product_info.id}</Text>
+                        <Text style={styles.about_order_popup_date_info}>{getTime2(more_product_info?.date_created)}</Text>
                     </View>
+
                     <ScrollView style={{flex: 1, width: '100%'}}>
                         <View style={styles.about_order_popup_line}></View>
                         <View style={styles.about_order_popup_address_info_title_wrapper}>
                             <Text style={styles.about_order_popup_address_info_title}>Доставка</Text>
                             <Text style={styles.about_order_popup_address_info1}>
-                                Заказ {checkStatus(about_order_info.status)}
+                                Заказ {checkStatus(more_product_info.status)}
                             </Text>
                             <Text style={styles.about_order_popup_address_info}>
-                                {about_order_info.address}
+                                {more_product_info.address}
                             </Text>
 
+                            
                         </View>
                         <View style={styles.about_order_popup_line}></View>
                         <View style={styles.about_order_popup_repeat_order_btn_title_wrapper}>
-                            <Text style={styles.about_order_popup_repeat_order_btn_title}>Заказ доставлен</Text>
+                            <Text style={styles.about_order_popup_repeat_order_btn_title}>Заказ {checkStatus(more_product_info.status)}</Text>
                             <TouchableOpacity
                                 style={styles.about_order_popup_repeat_order_btn}
                                 onPress={() => {
@@ -504,11 +577,11 @@ function Profile (props) {
                                 </Text>
                             </TouchableOpacity>
                         </View>
-                        <Text style={styles.about_order_popup_amount_info}>{more_product_info.products.length} товаров  на сумму:</Text>
-                        <Text style={styles.about_order_popup_total_info}>{about_order_info.total}Р</Text>
+                        {/*<Text style={styles.about_order_popup_amount_info}>{more_product_info.products.length} товаров  на сумму:</Text>*/}
+                        <Text style={styles.about_order_popup_total_info}>{more_product_info.total}Р</Text>
 
                         <View style={[styles.more_products_items_wrapper, {paddingHorizontal: 16}]}>
-                            {more_product_info.products.map((item, index) => {
+                            {more_product_info?.more_product.products?.map((item, index) => {
                                 return(
                                     <View key={index} style={styles.more_product_item}>
                                         <View style={styles.more_product_item_img}>
