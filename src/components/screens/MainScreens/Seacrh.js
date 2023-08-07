@@ -20,7 +20,7 @@ import StarIcon from '../../../assets/svg/star_icon'
 import MinusIcon from '../../../assets/svg/minus_icon'
 import PlusIcon from '../../../assets/svg/plus_icon'
 import BasketBlock from '../../includes/BasketBlock';
-import  SearchIcon from '../../../assets/svg/search_icon2';
+import  SearchIcon from '../../../assets/svg/search_icon';
 import  DeleteIcon from '../../../assets/svg/delete_search_icon';
 
 
@@ -49,6 +49,8 @@ import {
     initialWindowMetrics,
 } from 'react-native-safe-area-context';
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import DeliveryIcon from '../../../assets/svg/delivery_icon';
+import PhoneIcon from '../../../assets/svg/phone_icon';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -75,7 +77,7 @@ function CatalogProducts (props) {
 
     const context = useContext(AuthContext);
 
-    const getSearchInfo = async (val = '') => {
+    const getSearchInfo = async () => {
         let userInfo = await AsyncStorage.getItem('user');
         userInfo = JSON.parse(userInfo)
         let token =  userInfo.token;
@@ -83,7 +85,7 @@ function CatalogProducts (props) {
         console.log(token, 'token');
         console.log(session, 'session');
 
-        let search_value = val == '' ? search : val
+        // let search_value = val == '' ? search : val
         try {
 
             let myHeaders = new Headers();
@@ -91,7 +93,7 @@ function CatalogProducts (props) {
 
             let formdata = new FormData();
             formdata.append("session", session);
-            formdata.append("search", search_value);
+            formdata.append("search", search);
             formdata.append("category", '');
 
             let requestOptions = {
@@ -124,7 +126,7 @@ function CatalogProducts (props) {
 
     const  findInBasket = (id) => {
         let productId = id;
-        let objectsWithProductId = basket_info[0].products?.filter(obj => obj.product.id === productId);
+        let objectsWithProductId = basket_info[0]?.products?.filter(obj => obj.product.id === productId);
         let hasObjectsWithProductId = objectsWithProductId.length > 0;
         return hasObjectsWithProductId ? objectsWithProductId : null;
     }
@@ -150,38 +152,67 @@ function CatalogProducts (props) {
             </View>
 
             <ScrollView style={styles.catalog_products_items_main_wrapper}>
-                <View style={styles.home_catalog_search_input_field_icon_wrapper}>
-                    <TouchableOpacity>
-                        <SearchIcon/>
-                    </TouchableOpacity>
-                    <TextInput
-                        style={styles.home_catalog_search_input_field}
-                        onChangeText={(val) =>
+                <View style={{
+                    width: '100%',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 15,
+                    // paddingHorizontal: 12,
+                    paddingTop: 5
+                }}>
+                    <View style={styles.home_catalog_search_input_field_icon_wrapper}>
+                        <TextInput
+                            style={styles.home_catalog_search_input_field}
+                            onChangeText={(val) =>
                             {
                                 setSearch(val)
                                 if (val.length == 0) {
                                     setSearchInfo([])
-                                } else {
-                                    getSearchInfo(val)
                                 }
+
+                                // else {
+                                //     getSearchInfo(val)
+                                // }
                             }
 
-                        }
-                        value={search}
-                        placeholder='Название продукта'
-                        placeholderTextColor='#B8B8B8'
-                    />
+                            }
+                            value={search}
+                            placeholder='Название продукта'
+                            placeholderTextColor='#B8B8B8'
+                        />
 
-                    {search.length > 0 &&
+
+
+                        {search.length > 0 &&
                         <TouchableOpacity style={styles.delete_icon} onPress={() => {
                             setSearch('')
                             setSearchInfo([])
                         }}>
                             <DeleteIcon/>
                         </TouchableOpacity>
-                    }
+                        }
 
+                    </View>
+
+                    <View style={styles.home_catalog_delivery_phone_buttons_wrapper}>
+                        {search.length > 0 ?
+                            <TouchableOpacity style={styles.home_catalog_delivery_phone_button} onPress={() => {
+                                getSearchInfo()
+                            }}>
+                                <SearchIcon/>
+                            </TouchableOpacity>
+                            :
+                            <TouchableOpacity style={[styles.home_catalog_delivery_phone_button, {opacity: 0.5}]} disabled={true}>
+                                <SearchIcon/>
+                            </TouchableOpacity>
+                        }
+                    </View>
                 </View>
+
+
+
+
                 <View style={styles.catalog_products_items_wrapper}>
                     {search_info.length > 0 ?
                         <View style={{width: '100%', flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap'}}>
@@ -445,30 +476,20 @@ const styles = StyleSheet.create({
         height: 33,
     },
     home_catalog_search_input_field_icon_wrapper: {
-        width: '100%',
+        width: '85%',
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#FFFFFF',
         borderRadius: 12,
-        // shadowOffset: {width: 2, height: 5},
-        // shadowColor: 'rgb(0, 0, 0)',
-        // shadowOpacity: 3,
-        // shadowRadius: 19,
-        // elevation: 10,
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 3,
+        shadowRadius: 19,
+        elevation: 5,
         paddingHorizontal: 8,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 2,
-            height: 5,
-        },
-        shadowOpacity: 19,
-        shadowRadius: 4.65,
-
-        elevation: 10,
         // paddingVertical: 8,
-        height: 44,
-        marginBottom: 20,
-        position: 'relative'
+        height: 45,
+        marginLeft: 2
 
     },
     delete_icon: {
@@ -480,7 +501,19 @@ const styles = StyleSheet.create({
         fontWeight: '300',
         color: '#B8B8B8',
         fontSize: 16,
-        marginLeft: 4,
-        width: '75%',
+        // marginLeft: 4,
+    },
+    home_catalog_delivery_phone_button: {
+        backgroundColor: '#B9D149',
+        borderRadius: 9,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 3,
+        shadowRadius: 19,
+        elevation: 5,
+        width: 42,
+        height: 44,
     },
 });
