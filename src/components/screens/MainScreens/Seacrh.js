@@ -501,6 +501,7 @@ const styles = StyleSheet.create({
         fontWeight: '300',
         color: '#B8B8B8',
         fontSize: 16,
+        width: '100%'
         // marginLeft: 4,
     },
     home_catalog_delivery_phone_button: {
