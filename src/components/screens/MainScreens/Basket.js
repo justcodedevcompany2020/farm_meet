@@ -6,7 +6,13 @@ import {StatusBar, useColorScheme} from 'react-native';
 import {AuthContext} from "../../AuthContext/context";
 import { useContext } from 'react';
 import {useDispatch, useSelector, Provider} from 'react-redux';
-import {getBasketInfo, addToBasket, getProfileData} from '../../../store/actions/farmMeatActions';
+import {
+    getBasketInfo,
+    addToBasket,
+    getProfileData,
+    setProductId,
+    getSingleProductByProductId,
+} from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import BackIcon from '../../../assets/svg/back_icon.js'
 import MinusIcon from '../../../assets/svg/minus_icon'
@@ -93,6 +99,28 @@ function Basket (props) {
 
     const [isEnabled, setIsEnabled] = useState(false);
     const [isEnabled2, setIsEnabled2] = useState(false);
+    const [random_products, setRandomProducts] = useState([]);
+
+
+
+    function getRandomRoundNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getThreeUniqueRandomNumbers(min, max) {
+        const numbers = new Set();
+
+        // Ensure there's enough range to generate three unique numbers
+        if (max - min < 2) {
+            throw new Error('Range too small to generate three unique numbers.');
+        }
+
+        while (numbers.size < 3) {
+            numbers.add(getRandomRoundNumber(min, max));
+        }
+
+        return [...numbers];
+    }
 
 
     const toggleSwitch = () => {
@@ -497,6 +525,75 @@ function Basket (props) {
         }
     }
 
+
+
+    const getProductsInfo = async () => {
+        let userInfo = await AsyncStorage.getItem('user');
+        userInfo = JSON.parse(userInfo)
+        let token =  userInfo.token;
+        let session =  userInfo.session;
+        console.log(token, 'token');
+        console.log(session, 'session');
+
+        try {
+
+            let myHeaders = new Headers();
+            myHeaders.append("Authorization", `Token ${token}`);
+
+            let formdata = new FormData();
+            formdata.append("session", session);
+            formdata.append("category", '');
+
+
+            let requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: formdata,
+                redirect: 'follow'
+            };
+
+            let response = await fetch("https://farm-meat.site/shop/products/", requestOptions);
+            let data = await response.json();
+
+            console.log(data, 'products');
+            const [randomRoundNumber1, randomRoundNumber2, randomRoundNumber3] = getThreeUniqueRandomNumbers(1, data.length -1);
+
+            console.log(randomRoundNumber1, randomRoundNumber2, randomRoundNumber3, 'randoms');
+
+            let random_products = [];
+
+            if (response.status == 200) {
+                for (let i = 0; i < data.length ; i++) {
+                    if (i == randomRoundNumber1 || i == randomRoundNumber2 || i == randomRoundNumber3) {
+                        random_products.push(data[i])
+                    }
+                }
+
+                setRandomProducts(random_products)
+
+                console.log(random_products, 'randomProducts');
+            }
+
+            resolve(true);
+        } catch (error) {
+            // reject(error);
+        }
+    }
+
+    const redirectToProductSinglePage = (id) => {
+        dispatch(setProductId(id,() => {
+            props.navigation.navigate('ProductSinglePageScreen')
+        }))
+        dispatch(getSingleProductByProductId(id))
+
+    }
+
+    useEffect(() => {
+        getProductsInfo()
+    }, []);
+
+
+
     return (
         <SafeAreaView style={[styles.container]}>
             <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#EFF4D6" translucent = {true}/>
@@ -558,51 +655,81 @@ function Basket (props) {
 
                     })}
                 </View>
-                {/*<View style={styles.add_to_order_wrapper}>*/}
-                {/*    <Text style={styles.add_to_order_title}>Добавить к заказу?</Text>*/}
-                {/*    {add_to_basket.length > 2 ?*/}
-                {/*        <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.add_to_order_items_wrapper}>*/}
-                {/*            {add_to_basket.map((item, index) => {*/}
-                {/*                return(*/}
-                {/*                    <View key={index} style={styles.add_to_order_item}>*/}
-                {/*                        <TouchableOpacity style={styles.add_to_order_item_img}>*/}
-                {/*                            <Image  style={styles.add_to_order_item_img_child}  source={item.img} />*/}
-                {/*                        </TouchableOpacity>*/}
-                {/*                        <View style={styles.add_to_order_item_info_box}>*/}
-                {/*                            <Text style={styles.add_to_order_item_title}>{item.title}</Text>*/}
-                {/*                            <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*/}
-                {/*                            <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>*/}
+                <View style={styles.add_to_order_wrapper}>
+                    <Text style={styles.add_to_order_title}>Добавить к заказу?</Text>
+                    <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.add_to_order_items_wrapper}>
+                        {random_products.map((item, index) => {
+                            return(
+                                <View key={index} style={styles.add_to_order_item}>
+                                    <TouchableOpacity
+                                        style={styles.add_to_order_item_img}
+                                        onPress={() => {
+                                            redirectToProductSinglePage(item.id)
+                                        }}
+                                    >
+                                        <Image source={item.images[0]?.image ? {uri:  item.images[0]?.image} : require('../../../assets/images/recommendations_img.png')} style={styles.add_to_order_item_img_child}/>
 
-                {/*                        </View>*/}
-                {/*                    </View>*/}
-                {/*                )*/}
+                                    </TouchableOpacity>
+                                    <View style={styles.add_to_order_item_info_box}>
+                                        <Text numberOfLines={3} style={styles.add_to_order_item_title}>{item.title}</Text>
+                                        {/*<Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*/}
+                                        <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>
+                                    </View>
+                                </View>
+                            )
 
-                {/*            })}*/}
+                        })}
 
-                {/*        </ScrollView>*/}
-                {/*        :*/}
-                {/*        <View style={styles.add_to_order_items_wrapper2}>*/}
-                {/*            {add_to_basket.map((item, index) => {*/}
-                {/*                return(*/}
-                {/*                    <View key={index} style={styles.add_to_order_item}>*/}
-                {/*                        <TouchableOpacity style={styles.add_to_order_item_img}>*/}
-                {/*                            <Image  style={styles.add_to_order_item_img_child}  source={item.img} />*/}
-                {/*                        </TouchableOpacity>*/}
-                {/*                        <View style={styles.add_to_order_item_info_box}>*/}
-                {/*                            <Text style={styles.add_to_order_item_title}>{item.title}</Text>*/}
-                {/*                            <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*/}
-                {/*                            <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>*/}
+                    </ScrollView>
 
-                {/*                        </View>*/}
-                {/*                    </View>*/}
-                {/*                )*/}
+                    {/*{random_products.length > 2 ?*/}
+                    {/*    <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.add_to_order_items_wrapper}>*/}
+                    {/*        {random_products.map((item, index) => {*/}
+                    {/*            return(*/}
+                    {/*                <View key={index} style={styles.add_to_order_item}>*/}
+                    {/*                    <TouchableOpacity*/}
+                    {/*                        style={styles.add_to_order_item_img}*/}
+                    {/*                        onPress={() => {*/}
+                    {/*                            redirectToProductSinglePage(item.id)*/}
+                    {/*                        }}*/}
+                    {/*                    >*/}
+                    {/*                        <Image source={item.images[0]?.image ? {uri:  item.images[0]?.image} : require('../../../assets/images/recommendations_img.png')} style={styles.add_to_order_item_img_child}/>*/}
 
-                {/*            })}*/}
+                    {/*                    </TouchableOpacity>*/}
+                    {/*                    <View style={styles.add_to_order_item_info_box}>*/}
+                    {/*                        <Text numberOfLines={3} style={styles.add_to_order_item_title}>{item.title}</Text>*/}
+                    {/*                        /!*<Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*!/*/}
+                    {/*                        <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>*/}
+                    {/*                    </View>*/}
+                    {/*                </View>*/}
+                    {/*            )*/}
 
-                {/*        </View>*/}
-                {/*    }*/}
+                    {/*        })}*/}
 
-                {/*</View>*/}
+                    {/*    </ScrollView>*/}
+                    {/*    :*/}
+                    {/*    <View style={styles.add_to_order_items_wrapper2}>*/}
+                    {/*        {add_to_basket.map((item, index) => {*/}
+                    {/*            return(*/}
+                    {/*                <View key={index} style={styles.add_to_order_item}>*/}
+                    {/*                    <TouchableOpacity style={styles.add_to_order_item_img}>*/}
+                    {/*                        <Image  style={styles.add_to_order_item_img_child}  source={item.img} />*/}
+                    {/*                    </TouchableOpacity>*/}
+                    {/*                    <View style={styles.add_to_order_item_info_box}>*/}
+                    {/*                        <Text style={styles.add_to_order_item_title}>{item.title}</Text>*/}
+                    {/*                        <Text style={styles.add_to_order_item_quantity_info}>{item.quantity}</Text>*/}
+                    {/*                        <Text style={styles.add_to_order_item_price_info}>{item.price}Р\шт</Text>*/}
+
+                    {/*                    </View>*/}
+                    {/*                </View>*/}
+                    {/*            )*/}
+
+                    {/*        })}*/}
+
+                    {/*    </View>*/}
+                    {/*}*/}
+
+                </View>
 
 
                 <View style={styles.basket_main_info_details_items_wrapper}>

@@ -56,13 +56,92 @@ function ProductSinglePage (props) {
 
     const [show_feedback, setShowFeedback] = useState(false);
     const [show_loader, setShowLoader] = useState(true);
+    const [random_products, setRandomProducts] = useState([]);
 
     useEffect(() => {
         dispatch(getSingleProductByProductId(product_id))
     }, [dispatch]);
 
+    function getRandomRoundNumber(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getThreeUniqueRandomNumbers(min, max) {
+        const numbers = new Set();
+
+        // Ensure there's enough range to generate three unique numbers
+        if (max - min < 2) {
+            throw new Error('Range too small to generate three unique numbers.');
+        }
+
+        while (numbers.size < 3) {
+            numbers.add(getRandomRoundNumber(min, max));
+        }
+
+        return [...numbers];
+    }
+
+    const getProductsInfo = async () => {
+        let userInfo = await AsyncStorage.getItem('user');
+        userInfo = JSON.parse(userInfo)
+        let token =  userInfo.token;
+        let session =  userInfo.session;
+        console.log(token, 'token');
+        console.log(session, 'session');
+
+        try {
+
+            let myHeaders = new Headers();
+            myHeaders.append("Authorization", `Token ${token}`);
+
+            let formdata = new FormData();
+            formdata.append("session", session);
+            formdata.append("category", '');
+
+
+            let requestOptions = {
+                method: 'POST',
+                headers: myHeaders,
+                body: formdata,
+                redirect: 'follow'
+            };
+
+            let response = await fetch("https://farm-meat.site/shop/products/", requestOptions);
+            let data = await response.json();
+
+            console.log(data, 'products');
+            const [randomRoundNumber1, randomRoundNumber2, randomRoundNumber3] = getThreeUniqueRandomNumbers(1, data.length - 1);
+
+            console.log(randomRoundNumber1, randomRoundNumber2, randomRoundNumber3, 'randoms');
+
+            let random_products = [];
+            console.log(data.length, 'lenght');
+
+            if (response.status == 200) {
+                for (let i = 0; i < data.length ; i++) {
+                    if (i == randomRoundNumber1 || i == randomRoundNumber2 || i == randomRoundNumber3) {
+                            random_products.push(data[i])
+                    }
+                }
+
+                setRandomProducts(random_products)
+
+                console.log(random_products, 'randomProducts');
+            }
+
+            resolve(true);
+        } catch (error) {
+            // reject(error);
+        }
+    }
+
+
     useEffect(() => {
         setShowLoader(true)
+    }, []);
+
+    useEffect(() => {
+        getProductsInfo()
     }, []);
 
     useEffect(() => {
@@ -163,6 +242,15 @@ function ProductSinglePage (props) {
             </View>
         )
     }
+
+    const redirectToProductSinglePage = (id) => {
+        dispatch(setProductId(id,() => {
+            props.navigation.navigate('ProductSinglePageScreen')
+        }))
+        dispatch(getSingleProductByProductId(id))
+
+    }
+
 
 
 
@@ -302,30 +390,43 @@ function ProductSinglePage (props) {
                         {/*    </View>*/}
                         {/*}*/}
                     {/*</View>*/}
-                    {/*<View style={styles.single_product_recommendations_wrapper}>*/}
-                    {/*    <Text style={styles.single_product_recommendations_title}>Рекомендации:</Text>*/}
-                    {/*    <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.single_product_recommendations_items_wrapper}>*/}
-                    {/*        {recommendations.map((item, index) => {*/}
-                    {/*            return(*/}
-                    {/*               <TouchableOpacity style={styles.single_product_recommendations_item} key={index}>*/}
-                    {/*                    <View style={styles.single_product_recommendations_item_img}>*/}
-                    {/*                        <Image source={item.img} style={styles.single_product_recommendations_item_img_child}/>*/}
-                    {/*                    </View>*/}
-                    {/*                   <Text style={styles.single_product_recommendations_item_title}>*/}
-                    {/*                       {item.title}*/}
-                    {/*                   </Text>*/}
-                    {/*                   <View style={styles.single_product_recommendations_item_price_add_basket_btn_wrapper}>*/}
-                    {/*                       <Text style={styles.single_product_recommendations_item_price}>{item.price}Р\шт</Text>*/}
-                    {/*                       <TouchableOpacity style={styles.single_product_recommendations_basket_btn}>*/}
-                    {/*                           <RecommendationsBasketIcon/>*/}
-                    {/*                       </TouchableOpacity>*/}
-                    {/*                   </View>*/}
-                    {/*               </TouchableOpacity>*/}
-                    {/*            )*/}
+                    <View style={styles.single_product_recommendations_wrapper}>
+                        <Text style={styles.single_product_recommendations_title}>Рекомендации:</Text>
+                        <ScrollView horizontal={true} nestedScrollEnabled={true} style={styles.single_product_recommendations_items_wrapper}>
+                            {random_products.map((item, index) => {
+                                {console.log(item.images, 'image')}
+                                return(
+                                   <TouchableOpacity
+                                       style={styles.single_product_recommendations_item} key={index}
+                                       onPress={() => {
+                                           redirectToProductSinglePage(item.id)
+                                       }}
+                                   >
+                                        <View style={styles.single_product_recommendations_item_img}>
+                                            <Image source={item.images[0]?.image ? {uri:  item.images[0]?.image} : require('../../../assets/images/recommendations_img.png')} style={styles.single_product_recommendations_item_img_child}/>
+                                        </View>
+                                       <Text numberOfLines={3} style={styles.single_product_recommendations_item_title}>
+                                           {item.title}
+                                       </Text>
+                                       <View style={styles.single_product_recommendations_item_price_add_basket_btn_wrapper}>
+                                           <Text style={styles.single_product_recommendations_item_price}>{item.price}Р\шт</Text>
 
-                    {/*        })}*/}
-                    {/*    </ScrollView>*/}
-                    {/*</View>*/}
+                                           {/*<TouchableOpacity*/}
+                                           {/*    style={styles.single_product_recommendations_basket_btn}*/}
+                                           {/*    onPress={() => {*/}
+                                           {/*        addToBasketHandler(product_id, 1)*/}
+                                           {/*    }}*/}
+                                           {/*>*/}
+                                           {/*    <RecommendationsBasketIcon/>*/}
+                                           {/*</TouchableOpacity>*/}
+
+                                       </View>
+                                   </TouchableOpacity>
+                                )
+
+                            })}
+                        </ScrollView>
+                    </View>
                 </View>
 
             </ScrollView>
@@ -551,7 +652,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#4E7234',
         marginBottom: 6,
-        width: 94,
+        width: 100,
+        height: 50
     },
     single_product_recommendations_item_price_add_basket_btn_wrapper: {
         flexDirection: 'row',
@@ -581,6 +683,16 @@ const styles = StyleSheet.create({
         width: 110,
         paddingHorizontal: 10,
 
+    },
+    catalog_products_item_plus_minus_btns_wrapper2: {
+        backgroundColor: '#B9D149',
+        borderRadius: 6,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        height: 43,
+        width: 110,
+        paddingHorizontal: 10,
     },
     catalog_products_item_quantity_info: {
         fontSize: 24,
