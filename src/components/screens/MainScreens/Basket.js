@@ -314,6 +314,8 @@ function Basket (props) {
                 session: session,
                 payment_method: payment_method,
                 delivery_address: last_address == '' ? null : last_address,
+                comment: collector_comment.length > 0 ? collector_comment : null,
+                comment_dop: comment_courier.length > 0 ? comment_courier : null,
                 products: products
             });
 
@@ -327,7 +329,7 @@ function Basket (props) {
             let response = await fetch("https://farm-meat.site/shop/orders/create/", requestOptions);
             let data = await response.json();
 
-            console.log(data.order_id, 'order');
+            console.log(raw, 'raw');
             if (response.status == 200) {
 
 
