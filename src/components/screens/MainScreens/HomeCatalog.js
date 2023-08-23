@@ -43,6 +43,7 @@ import {
     initialWindowMetrics,
 } from 'react-native-safe-area-context';
 import {KeyboardAwareScrollView} from "react-native-keyboard-aware-scroll-view";
+import BasketBlock from '../../includes/BasketBlock';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -280,6 +281,7 @@ function HomeCatalog (props) {
             </ScrollView>
 
 
+            <BasketBlock  navigation={props.navigation}/>
             {isKeyboardVisible === false &&
                 <Footer active_page={'home_catalog'} navigation={props.navigation}/>
             }

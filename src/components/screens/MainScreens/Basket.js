@@ -101,6 +101,8 @@ function Basket (props) {
     const [isEnabled, setIsEnabled] = useState(false);
     const [isEnabled2, setIsEnabled2] = useState(false);
     const [random_products, setRandomProducts] = useState([]);
+    const [promo_code_error, setPromoCodeError] = useState(false);
+    const [promo_code_error_text, setPromoCodeErrorText] = useState(false);
 
 
 
@@ -301,15 +303,17 @@ function Basket (props) {
                  product: basket_products[i].product.id,
                  amount: basket_products[i].amount,
                  price: basket_products[i].product.price,
-                 sum_sale: 1
              }
              if (promo_code_info !== null) {
                  let discountPrice = Math.round((basket_products[i].product.price * promo_code_info.percent) / 100)
                  discountPrice = discountPrice.toString()
                  console.log (discountPrice, 'typeeee');
-                 // product_detail.sum_sale = discountPrice
+                 product_detail.sum_sale = discountPrice
                  // let discountedFinalProductPrice =  parseFloat(basket_products[i].product.price - discountPrice).toFixed(2);
                  // console.log(`${basket_products[i].product.price} - ${discountPrice} = ${discountedFinalProductPrice}`, 'priceeeeeeeeeeeeeeee');
+
+             } else {
+                 product_detail.sum_sale = ''
 
              }
             products.push(product_detail)
@@ -328,7 +332,8 @@ function Basket (props) {
                 delivery_address: last_address == '' ? null : last_address,
                 comment: collector_comment.length > 0 ? collector_comment : null,
                 comment_dop: comment_courier.length > 0 ? comment_courier : null,
-                products: products
+                products: products,
+                code: promo_code.length > 0 ? promo_code : ''
             });
 
             let requestOptions = {
@@ -607,7 +612,7 @@ function Basket (props) {
         getProductsInfo()
     }, []);
 
-    const getPromoCode = async () => {
+    const getPromoCode = async (val) => {
         let userInfo = await AsyncStorage.getItem('user');
         userInfo = JSON.parse(userInfo)
         let token =  userInfo.token;
@@ -620,7 +625,7 @@ function Basket (props) {
 
             let formdata = new FormData();
             formdata.append("session", session);
-            formdata.append("code", promo_code);
+            formdata.append("code", val);
 
 
             let requestOptions = {
@@ -631,6 +636,7 @@ function Basket (props) {
             };
 
             console.log(formdata, 'body');
+
             let response = await fetch("https://farm-meat.site/shop/orders/check_promocode/", requestOptions);
             let data = await response.json();
 
@@ -640,7 +646,17 @@ function Basket (props) {
             if (response.status == 200) {
                 setPromoCodeInfo(data)
             }
-            console.log(promo_code_info, 'promocode');
+             if (data == 'Promocode can\'t use.') {
+                    setPromoCodeError(true)
+                    setPromoCodeErrorText('Промокод недействителен.')
+                     setTimeout(() => {
+                         setPromoCodeError(false)
+                     }, 2000)
+             }
+
+
+
+
 
             resolve(true);
         } catch (error) {
@@ -790,13 +806,13 @@ function Basket (props) {
                 <View style={styles.basket_main_info_details_items_wrapper}>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title}>Скидки</Text>
-                            <Text style={styles.basket_main_info_details_item_text}>{promo_code_info != null  ? - promo_code_info.percent : -20} р</Text>
+                            <Text style={styles.basket_main_info_details_item_text}>{promo_code_info != null  ? - promo_code_info.percent : 0} р</Text>
                         </View>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title}>
                                 Доставка
                                 <View style={{paddingHorizontal: 2}}></View>
-                                <Text style={styles.basket_main_info_details_item_title_second_info}>От 2000 р</Text>
+                                {/*<Text style={styles.basket_main_info_details_item_title_second_info}>От 2000 р</Text>*/}
                             </Text>
                             <Text style={styles.basket_main_info_details_item_text}>0 р</Text>
                         </View>
@@ -822,29 +838,20 @@ function Basket (props) {
                     <Text style={styles.basket_collector_comment_input_title}>Промокод</Text>
                     <TextInput
                         style={[styles.basket_collector_comment_input_field]}
-                        onChangeText={(val) => setPromoCode(val)}
+                        onChangeText={(val) =>
+                            {
+                                setPromoCode(val)
+                                if (val.length >= 2) {
+                                    getPromoCode(val)
+                                }
+                            }
+                        }
                         value={promo_code}
                         // keyboardType={'phone-pad'}
                         // placeholder='Напишите, что важно учесть в заказе'
                         // placeholderTextColor='#4E7234'
                     />
-                    <TouchableOpacity
-                        onPress={() => {
-                            getPromoCode()
-                        }}
-                        style={{
-                            width: 170,
-                            alignItems: 'center',
-                            alignSelf: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: '#4E7234',
-                            borderRadius: 5,
-                            height: 40,
-                            marginTop: 10,
-                        }}
-                    >
-                        <Text style={{color: '#ffffff', fontSize: 15, fontWeight: '600'}}>Получить промокод</Text>
-                    </TouchableOpacity>
+
 
                 </View>
 
@@ -1243,6 +1250,14 @@ function Basket (props) {
             </View>
             }
 
+
+            {promo_code_error &&
+            <View style={styles.error_box}>
+                <Text style={styles.error_text}>{promo_code_error_text}</Text>
+            </View>
+            }
+
+
         </SafeAreaView>
     );
 }
@@ -1258,6 +1273,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#ffffff',
         width: "100%",
         height:  '100%',
+        position: 'relative'
 
     },
     basket_header_wrapper: {
@@ -1968,6 +1984,26 @@ const styles = StyleSheet.create({
         fontWeight: 500,
         color: '#4E7234',
         fontSize: 22,
+    },
+    error_box: {
+        height: 70,
+        width: 280,
+        borderRadius: 14,
+        backgroundColor: '#cc0000',
+        position: 'absolute',
+        top: 40,
+        justifyContent: 'center',
+        alignSelf: 'center',
+        alignItems: 'center',
+        zIndex: 99999999999999999,
+
+
+    },
+    error_text: {
+        color: '#ffffff',
+        fontSize: 18,
+        fontWeight: '500',
+        textAlign: 'center'
     },
 });
 

@@ -558,7 +558,7 @@ function Profile (props) {
                                 {more_product_info.address}
                             </Text>
 
-                            
+
                         </View>
                         <View style={styles.about_order_popup_line}></View>
                         <View style={styles.about_order_popup_repeat_order_btn_title_wrapper}>
@@ -582,7 +582,9 @@ function Profile (props) {
 
                         <View style={[styles.more_products_items_wrapper, {paddingHorizontal: 16}]}>
                             {more_product_info?.more_product.products?.map((item, index) => {
+                                console.log(item, 'amout');
                                 return(
+
                                     <View key={index} style={styles.more_product_item}>
                                         <View style={styles.more_product_item_img}>
                                             {item.product.images[0]?.image ?
@@ -598,7 +600,7 @@ function Profile (props) {
                                             <Text style={styles.more_product_item_info_name}>{item.product.title}</Text>
                                             <View style={styles.more_product_item_info_price_amount_info_wrapper}>
                                                 <Text style={styles.more_product_item_info_price_info}>{item.product.price}Р\шт</Text>
-                                                <Text style={styles.more_product_item_info_amount_info}>{item.amount} шт</Text>
+                                                <Text style={styles.more_product_item_info_amount_info}>{item.amount_confirmed} шт</Text>
                                             </View>
                                         </View>
                                     </View>
