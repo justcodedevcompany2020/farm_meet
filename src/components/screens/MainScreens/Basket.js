@@ -333,7 +333,8 @@ function Basket (props) {
                 comment: collector_comment.length > 0 ? collector_comment : null,
                 comment_dop: comment_courier.length > 0 ? comment_courier : null,
                 products: products,
-                code: promo_code.length > 0 ? promo_code : ''
+                code: promo_code.length > 0 ? promo_code : '',
+                // delivery_price: '',
             });
 
             let requestOptions = {
@@ -612,7 +613,7 @@ function Basket (props) {
         getProductsInfo()
     }, []);
 
-    const getPromoCode = async (val) => {
+    const getPromoCode = async () => {
         let userInfo = await AsyncStorage.getItem('user');
         userInfo = JSON.parse(userInfo)
         let token =  userInfo.token;
@@ -625,7 +626,7 @@ function Basket (props) {
 
             let formdata = new FormData();
             formdata.append("session", session);
-            formdata.append("code", val);
+            formdata.append("code", promo_code);
 
 
             let requestOptions = {
@@ -649,6 +650,13 @@ function Basket (props) {
              if (data == 'Promocode can\'t use.') {
                     setPromoCodeError(true)
                     setPromoCodeErrorText('Промокод недействителен.')
+                     setTimeout(() => {
+                         setPromoCodeError(false)
+                     }, 2000)
+             }
+             if (data == 'Promocode isn\'t found.') {
+                    setPromoCodeError(true)
+                    setPromoCodeErrorText('Не верный промокод!')
                      setTimeout(() => {
                          setPromoCodeError(false)
                      }, 2000)
@@ -841,9 +849,9 @@ function Basket (props) {
                         onChangeText={(val) =>
                             {
                                 setPromoCode(val)
-                                if (val.length >= 2) {
-                                    getPromoCode(val)
-                                }
+                                // if (val.length >= 2) {
+                                //     getPromoCode(val)
+                                // }
                             }
                         }
                         value={promo_code}
@@ -852,6 +860,9 @@ function Basket (props) {
                         // placeholderTextColor='#4E7234'
                     />
 
+                    <TouchableOpacity style={styles.promocode_btn} onPress={() => getPromoCode()}>
+                        <Text style={styles.promocode_btn_text}>Применить</Text>
+                    </TouchableOpacity>
 
                 </View>
 
@@ -967,20 +978,45 @@ function Basket (props) {
 
             </ScrollView>
             <View style={styles.order_basket_btn_box}>
-                {basket_info[0]?.products?.length > 0 ?
+                {/*{basket_info[0]?.products?.length > 0 ?*/}
+                {/*    <TouchableOpacity*/}
+
+                {/*        style={styles.order_basket_btn}*/}
+                {/*        onPress={() => {*/}
+                {/*            makeAnOrder()*/}
+                {/*        }}*/}
+                {/*    >*/}
+                {/*        <Text style={styles.order_basket_btn_text}>Заказать</Text>*/}
+                {/*    </TouchableOpacity>*/}
+                {/*    :*/}
+                {/*    <TouchableOpacity*/}
+                {/*        disabled={true}*/}
+                {/*        style={[styles.order_basket_btn, {opacity: 0.6}]}*/}
+                {/*    >*/}
+                {/*        <Text style={styles.order_basket_btn_text}>Заказать</Text>*/}
+                {/*    </TouchableOpacity>*/}
+
+                {/*}*/}
+
+                {basket_info[0]?.total <= 1000  ?
+                    <TouchableOpacity
+
+                        disabled={true}
+                        style={[styles.order_basket_btn, {opacity: 0.6}]}
+                    >
+                        <Text style={styles.order_basket_btn_text}>
+                            Минимальная сумма заказа
+                            1000 руб.
+                        </Text>
+                    </TouchableOpacity>
+                    :
+
                     <TouchableOpacity
 
                         style={styles.order_basket_btn}
                         onPress={() => {
                             makeAnOrder()
                         }}
-                    >
-                        <Text style={styles.order_basket_btn_text}>Заказать</Text>
-                    </TouchableOpacity>
-                    :
-                    <TouchableOpacity
-                        disabled={true}
-                        style={[styles.order_basket_btn, {opacity: 0.6}]}
                     >
                         <Text style={styles.order_basket_btn_text}>Заказать</Text>
                     </TouchableOpacity>
@@ -1568,12 +1604,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: '#4E7234',
         borderRadius: 11,
-        height: 60,
+        height: 65,
     },
     order_basket_btn_text: {
         color: '#ffffff',
         fontWeight: '500',
         fontSize: 21,
+        textAlign: 'center'
     },
     payment_methods_popup: {
         backgroundColor:  'rgba(157, 148, 148, 0.49)',
@@ -2005,5 +2042,20 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         textAlign: 'center'
     },
+    promocode_btn: {
+        width: 180,
+        alignItems: 'center',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#4E7234',
+        borderRadius: 5,
+        height: 45,
+        marginTop: 20
+    },
+    promocode_btn_text: {
+        color: '#ffffff',
+        fontWeight: '500',
+        fontSize: 15
+    }
 });
 
