@@ -99,7 +99,7 @@ function Basket (props) {
 
 
     const [isEnabled, setIsEnabled] = useState(false);
-    const [isEnabled2, setIsEnabled2] = useState(false);
+    const [isEnabled2, setIsEnabled2] = useState(true);
     const [random_products, setRandomProducts] = useState([]);
     const [promo_code_error, setPromoCodeError] = useState(false);
     const [promo_code_error_text, setPromoCodeErrorText] = useState(false);
@@ -127,34 +127,41 @@ function Basket (props) {
 
 
     const toggleSwitch = () => {
-        if (basket_info[0]?.total < 2000) {
-            setIsEnabled(false)
-            setIsEnabled2(true)
+        // if (basket_info[0]?.total < 2000) {
+        // if (totalPrice()  < 2000) {
+        //     setIsEnabled(false)
+        //     setIsEnabled2(true)
+        //
+        // } else {
+        //     setIsEnabled(isEnabled => !isEnabled)
+        //     setIsEnabled2(isEnabled2 => !isEnabled2)
+        //     // setShowPickupInfo(false)
+        //     // setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
+        // }
 
-        } else {
-            setIsEnabled(isEnabled => !isEnabled)
-            setIsEnabled2(isEnabled2 => !isEnabled2)
-            // setShowPickupInfo(false)
-            // setShowDeliveryInfo(show_delivery_info => !show_delivery_info)
-        }
+        setIsEnabled(isEnabled => !isEnabled)
+        setIsEnabled2(isEnabled2 => !isEnabled2)
 
     };
 
 
 
     const toggleSwitch2 = () => {
-        if (basket_info[0]?.total < 2000) {
-            setIsEnabled2(true)
-            setIsEnabled(false)
+        // if (basket_info[0]?.total < 2000) {
+        // if (totalPrice()  < 2000) {
+        //     setIsEnabled2(true)
+        //     setIsEnabled(false)
+        //
+        //
+        // } else {
+        //     setIsEnabled2(isEnabled2 => !isEnabled2)
+        //     setIsEnabled(isEnabled => !isEnabled)
+        //     // setShowDeliveryInfo(false)
+        //     // setShowPickupInfo(show_pickup_info => !show_pickup_info)
+        // }
 
-
-        } else {
-            setIsEnabled2(isEnabled2 => !isEnabled2)
-            setIsEnabled(isEnabled => !isEnabled)
-            // setShowDeliveryInfo(false)
-            // setShowPickupInfo(show_pickup_info => !show_pickup_info)
-        }
-
+        setIsEnabled2(isEnabled2 => !isEnabled2)
+        setIsEnabled(isEnabled => !isEnabled)
     };
 
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -185,15 +192,18 @@ function Basket (props) {
 
 
     useEffect(() => {
-        if (basket_info[0]?.total < 2000) {
-            setIsEnabled(false)
-            setIsEnabled2(true)
-        } else {
-            setIsEnabled(true)
-            setIsEnabled2(false)
-        }
-
-        console.log(basket_info[0]?.total, 'basket_info[0]?.total');
+        // if (basket_info[0]?.total < 2000) {
+        // if (totalPrice() < 2000) {
+        //     setIsEnabled(false)
+        //     setIsEnabled2(true)
+        // } else {
+        //     setIsEnabled(true)
+        //     setIsEnabled2(false)
+        // }
+        //
+        // setIsEnabled(false)
+        // setIsEnabled2(true)
+        // console.log(basket_info[0]?.total, 'basket_info[0]?.total');
     }, [basket_info]);
 
     useEffect(() => {
@@ -314,7 +324,6 @@ function Basket (props) {
 
              } else {
                  product_detail.sum_sale = ''
-
              }
             products.push(product_detail)
         }
@@ -326,7 +335,7 @@ function Basket (props) {
             myHeaders.append("Authorization", `Token ${token}`);
 
 
-            let raw = JSON.stringify({
+            let property = {
                 session: session,
                 payment_method: payment_method,
                 delivery_address: last_address == '' ? null : last_address,
@@ -334,8 +343,13 @@ function Basket (props) {
                 comment_dop: comment_courier.length > 0 ? comment_courier : null,
                 products: products,
                 code: promo_code.length > 0 ? promo_code : '',
-                // delivery_price: '',
-            });
+            }
+
+            if (totalPrice() < 3000 && isEnabled) {
+                property.delivery_price = '300'
+            }
+
+            let raw = JSON.stringify(property);
 
             let requestOptions = {
                 method: 'POST',
@@ -673,6 +687,64 @@ function Basket (props) {
     }
 
 
+    const totalPrice = () => {
+        let total_price = 0;
+
+        if (basket_info.length > 0 && basket_info[0].products.length > 0 ) {
+            total_price = basket_info[0]?.total;
+            total_price = parseFloat(total_price)
+
+
+            if (promo_code_info != null) {
+                let discountedPrice = parseFloat((total_price * promo_code_info.percent) / 100 ).toFixed(2)
+                total_price = total_price - discountedPrice
+            }
+
+
+            if (total_price < 3000 && isEnabled) {
+                total_price = total_price + 300;
+            }
+
+            console.log(total_price, 'hhhhh');
+            total_price = parseFloat(total_price).toFixed(2)
+
+
+        }
+
+
+        return total_price
+
+    }
+
+    const discount = () => {
+        let total_price = basket_info[0]?.total;
+        let discountedPrice = 0;
+        total_price = parseFloat(total_price)
+
+        if (promo_code_info != null) {
+             discountedPrice = parseFloat((total_price * promo_code_info.percent) / 100 ).toFixed(2)
+        }
+
+        console.log(discountedPrice, 'discountedPrice');
+
+        return discountedPrice
+
+    }
+    const deliveryPrice = () => {
+        let total_price = basket_info[0]?.total;
+        let delivery_price = 0;
+
+        if (total_price < 3000 && isEnabled) {
+            delivery_price = 300;
+        } else {
+            delivery_price = 0
+        }
+
+
+        return delivery_price
+    }
+
+
     return (
         <SafeAreaView style={[styles.container]}>
             <StatusBar barStyle = "dark-content" hidden = {false} backgroundColor = "#EFF4D6" translucent = {true}/>
@@ -814,7 +886,7 @@ function Basket (props) {
                 <View style={styles.basket_main_info_details_items_wrapper}>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title}>Скидки</Text>
-                            <Text style={styles.basket_main_info_details_item_text}>{promo_code_info != null  ? - promo_code_info.percent : 0} р</Text>
+                            <Text style={styles.basket_main_info_details_item_text}>{discount()} р</Text>
                         </View>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title}>
@@ -822,11 +894,11 @@ function Basket (props) {
                                 <View style={{paddingHorizontal: 2}}></View>
                                 {/*<Text style={styles.basket_main_info_details_item_title_second_info}>От 2000 р</Text>*/}
                             </Text>
-                            <Text style={styles.basket_main_info_details_item_text}>0 р</Text>
+                            <Text style={styles.basket_main_info_details_item_text}>{deliveryPrice()} р</Text>
                         </View>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title2}>Общая сумма заказа</Text>
-                            <Text style={styles.basket_main_info_details_item_text2}>{promo_code_info != null ?  parseFloat((basket_info[0]?.total * promo_code_info.percent) / 100 ).toFixed(2)  : basket_info[0]?.total}</Text>
+                            <Text style={styles.basket_main_info_details_item_text2}>{totalPrice()} р</Text>
                         </View>
                 </View>
                 <View style={styles.basket_line}></View>
@@ -998,11 +1070,12 @@ function Basket (props) {
 
                 {/*}*/}
 
-                {basket_info[0]?.total <= 1000  ?
+                {/*{basket_info[0]?.total <= 1000  ?*/}
+                {totalPrice()  <= 1000  ?
                     <TouchableOpacity
 
                         disabled={true}
-                        style={[styles.order_basket_btn, {opacity: 0.6}]}
+                        style={[styles.order_basket_btn, {opacity: 0.6, paddingHorizontal: 20}]}
                     >
                         <Text style={styles.order_basket_btn_text}>
                             Минимальная сумма заказа
