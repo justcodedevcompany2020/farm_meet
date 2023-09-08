@@ -43,7 +43,8 @@ import {
     Platform,
     Dimensions,
     Switch,
-    Keyboard
+    Keyboard,
+    TouchableHighlight
 } from 'react-native';
 
 import {
@@ -317,14 +318,15 @@ function Basket (props) {
              if (promo_code_info !== null) {
                  let discountPrice = Math.round((basket_products[i].product.price * promo_code_info.percent) / 100)
                  discountPrice = discountPrice.toString()
-                 console.log (discountPrice, 'typeeee');
+                 console.log(discountPrice, 'typeeee');
                  product_detail.sum_sale = discountPrice
                  // let discountedFinalProductPrice =  parseFloat(basket_products[i].product.price - discountPrice).toFixed(2);
                  // console.log(`${basket_products[i].product.price} - ${discountPrice} = ${discountedFinalProductPrice}`, 'priceeeeeeeeeeeeeeee');
 
-             } else {
-                 product_detail.sum_sale = ''
              }
+             // } else {
+             //     product_detail.sum_sale = ''
+             // }
             products.push(product_detail)
         }
         console.log(products, 'productssssssssss');
@@ -342,13 +344,15 @@ function Basket (props) {
                 comment: collector_comment.length > 0 ? collector_comment : null,
                 comment_dop: comment_courier.length > 0 ? comment_courier : null,
                 products: products,
-                code: promo_code.length > 0 ? promo_code : '',
             }
 
             if (totalPrice() < 3000 && isEnabled) {
                 property.delivery_price = '300'
             }
 
+            if (promo_code.length > 0) {
+                property.code = promo_code
+            }
             let raw = JSON.stringify(property);
 
             let requestOptions = {
@@ -392,6 +396,9 @@ function Basket (props) {
                         redirect: 'follow'
                     };
 
+
+
+                    console.log(formdata, 'formdata');
                     fetch("https://farm-meat.site/shop/orders/payment/", requestOptions)
                         .then(response => response.json())
                         .then(result => {console.log(result, 'url')
@@ -762,46 +769,53 @@ function Basket (props) {
             <ScrollView style={styles.basket_main_wrapper}>
                 <View style={styles.basket_items_wrapper}>
                     {basket_info.length > 0 && basket_info[0].products.length > 0 && basket_info[0].products.map((item, index) => {
-                        console.log(basket_info[0].products, 'bsko');
+                        console.log(item, 'bsko');
                         return(
-                            <View key={index} style={styles.basket_item}>
-                                    <TouchableOpacity style={styles.basket_item_img}>
+                            <TouchableOpacity key={index} style={styles.basket_item}
+                                              onPress={() => {
+                                                 redirectToProductSinglePage(item.product.id)
+                                             }}
+                            >
+                                    <View style={styles.basket_item_img}>
                                         {item?.product?.images?.length > 0 ?
                                             <Image style={styles.basket_item_img_child}  source={{uri: item?.product?.images[0]?.image}} />
                                             :
                                             <Image  style={styles.basket_item_img_child}  source={require('../../../assets/images/basket_img.png')} />
 
                                         }
-                                    </TouchableOpacity>
+                                    </View>
                                     <View style={styles.basket_item_info_box}>
                                         <Text style={styles.basket_item_title}>{item?.product?.title}</Text>
                                         <Text style={styles.basket_item_quantity_info}>450г</Text>
                                         <View style={styles.basket_item_price_info_plus_minus_btns_wrapper}>
-                                            <View style={styles.catalog_products_item_plus_minus_btns_wrapper}>
-                                                <TouchableOpacity
-                                                    style={styles.catalog_products_item_minus_btn}
-                                                    onPress={() => {
-                                                        addToBasketHandler(item.product?.id, item?.amount - 1)
-                                                    }}
-                                                >
-                                                    <MinusIcon/>
-                                                </TouchableOpacity>
-                                                <Text style={styles.catalog_products_item_quantity_info}>{item?.amount}</Text>
-                                                <TouchableOpacity
-                                                    style={styles.catalog_products_item_plus_btn}
-                                                    onPress={() => {
-                                                        addToBasketHandler(item.product?.id, item?.amount + 1)
-                                                    }}
-                                                >
-                                                    <PlusIcon/>
-                                                </TouchableOpacity>
-                                            </View>
+                                            <TouchableHighlight style={{width: 80}}>
+                                                <View style={styles.catalog_products_item_plus_minus_btns_wrapper}>
+                                                    <TouchableOpacity
+                                                        style={styles.catalog_products_item_minus_btn}
+                                                        onPress={() => {
+                                                            addToBasketHandler(item.product?.id, item?.amount - 1)
+                                                        }}
+                                                    >
+                                                        <MinusIcon/>
+                                                    </TouchableOpacity>
+                                                    <Text style={styles.catalog_products_item_quantity_info}>{item?.amount}</Text>
+                                                    <TouchableOpacity
+                                                        style={styles.catalog_products_item_plus_btn}
+                                                        onPress={() => {
+                                                            addToBasketHandler(item.product?.id, item?.amount + 1)
+                                                        }}
+                                                    >
+                                                        <PlusIcon/>
+                                                    </TouchableOpacity>
+                                                </View>
+
+                                            </TouchableHighlight>
                                             <ImageBackground borderRadius={5} source={require('../../../assets/images/button_back_img.png')} style={styles.basket_item_price_info_box}>
                                                 <Text style={styles.basket_item_price_info}>{item?.product?.price}/шт</Text>
                                             </ImageBackground>
                                         </View>
                                     </View>
-                            </View>
+                            </TouchableOpacity>
                         )
 
                     })}
@@ -882,7 +896,6 @@ function Basket (props) {
 
                 </View>
 
-
                 <View style={styles.basket_main_info_details_items_wrapper}>
                         <View style={styles.basket_main_info_details_item}>
                             <Text style={styles.basket_main_info_details_item_title}>Скидки</Text>
@@ -903,11 +916,13 @@ function Basket (props) {
                 </View>
                 <View style={styles.basket_line}></View>
                 <View style={styles.basket_collector_comment_input_wrapper}>
-                    <Text style={styles.basket_collector_comment_input_title}>Комментарий сборщику</Text>
+                    <Text style={styles.basket_collector_comment_input_title}>Комментарий для сборщика</Text>
 
                     <TextInput
                         style={[styles.basket_collector_comment_input_field]}
                         onChangeText={(val) => setCollectorComment(val)}
+                        multiline
+                        numberOfLines={5}
                         value={collector_comment}
                         placeholder='Напишите, что важно учесть в заказе'
                         placeholderTextColor='#4E7234'
@@ -917,7 +932,7 @@ function Basket (props) {
                 <View style={[styles.basket_collector_comment_input_wrapper, {marginBottom: 32}]}>
                     <Text style={styles.basket_collector_comment_input_title}>Промокод</Text>
                     <TextInput
-                        style={[styles.basket_collector_comment_input_field]}
+                        style={[styles.basket_collector_comment_input_field2]}
                         onChangeText={(val) =>
                             {
                                 setPromoCode(val)
@@ -1017,11 +1032,13 @@ function Basket (props) {
 
                 </View>
                 <View style={[styles.basket_collector_comment_input_wrapper, {marginBottom: 36}]}>
-                    <Text style={styles.basket_collector_comment_input_title}>Комментарий курьеру</Text>
+                    <Text style={styles.basket_collector_comment_input_title}>Комментарий для курьера</Text>
 
                     <TextInput
                         style={[styles.basket_collector_comment_input_field]}
                         onChangeText={(val) => setCommentCourier(val)}
+                        multiline
+                        numberOfLines={5}
                         value={comment_courier}
                         placeholder='Напишите, что важно учесть в заказе'
                         placeholderTextColor='#4E7234'
@@ -1633,10 +1650,28 @@ const styles = StyleSheet.create({
         shadowRadius: 20,
         elevation: 10,
         paddingVertical: 10,
+        minHeight: 100,
+        color: '#4E7234',
+        fontWeight: '400',
+        fontSize: 14,
+        textAlignVertical: 'top'
+    },
+    basket_collector_comment_input_field2: {
+        width: '100%',
+        borderRadius: 15,
+        paddingHorizontal: 16,
+        backgroundColor: '#ffffff',
+        shadowOffset: {width: 0, height: 4},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.25,
+        shadowRadius: 20,
+        elevation: 10,
+        paddingVertical: 10,
         height: 55,
         color: '#4E7234',
         fontWeight: '400',
         fontSize: 14,
+        // textAlignVertical: 'top'
     },
     basket_payment_method_wrapper: {
         width: '100%',

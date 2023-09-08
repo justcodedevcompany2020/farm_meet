@@ -77,22 +77,22 @@ function Footer (props) {
                     </TouchableOpacity>
                 }
 
-                {props.active_page == 'stock' ?
-                    <TouchableOpacity style={styles.footer_item}>
-                        <View style={styles.footer_item_icon}>
-                            <StockNoActiveSvg/>
-                        </View>
-                        <Text style={styles.footer_item_title_active}>Акции</Text>
+                {/*{props.active_page == 'stock' ?*/}
+                {/*    <TouchableOpacity style={styles.footer_item}>*/}
+                {/*        <View style={styles.footer_item_icon}>*/}
+                {/*            <StockNoActiveSvg/>*/}
+                {/*        </View>*/}
+                {/*        <Text style={styles.footer_item_title_active}>Акции</Text>*/}
 
-                    </TouchableOpacity>
-                    :
-                    <TouchableOpacity style={styles.footer_item}>
-                        <View style={styles.footer_item_icon}>
-                            <StockNoActiveSvg/>
-                        </View>
-                        <Text style={styles.footer_item_title_no_active}>Акции</Text>
-                    </TouchableOpacity>
-                }
+                {/*    </TouchableOpacity>*/}
+                {/*    :*/}
+                {/*    <TouchableOpacity style={styles.footer_item}>*/}
+                {/*        <View style={styles.footer_item_icon}>*/}
+                {/*            <StockNoActiveSvg/>*/}
+                {/*        </View>*/}
+                {/*        <Text style={styles.footer_item_title_no_active}>Акции</Text>*/}
+                {/*    </TouchableOpacity>*/}
+                {/*}*/}
 
                 {props.active_page == 'basket' ?
                     <TouchableOpacity style={styles.footer_item}>
