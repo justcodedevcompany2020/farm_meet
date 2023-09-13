@@ -1356,7 +1356,12 @@ function Basket (props) {
                             console.log(webViewState.url, 'WebView onNavigationStateChange')
                             if(webViewState.url.search('https://farm-meat.site/shop/orders/payment/view/') !== -1)
                             {
-                                console.log('success')
+                                console.log('cancel')
+                                setShowPaymentUrl(false)
+                                setOrderSuccess(false)
+                                dispatch(getBasketInfo())
+
+                            } else if (webViewState.url.search('https://yoomoney.ru/checkout/payments/v2/success?orderId') !== -1) {
                                 setShowPaymentUrl(false)
                                 setOrderSuccess(true)
                                 setTimeout(() => {
@@ -1364,7 +1369,6 @@ function Basket (props) {
                                     props.navigation.navigate('HomeCatalogScreen')
                                 }, 2000)
                                 dispatch(getBasketInfo())
-
                             }
 
 
