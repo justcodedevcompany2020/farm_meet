@@ -12,6 +12,7 @@ import {
     getProfileData,
     setProductId,
     getSingleProductByProductId,
+    waitPaymentPopup
 } from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import BackIcon from '../../../assets/svg/back_icon.js'
@@ -299,6 +300,7 @@ function Basket (props) {
     }
 
     const makeAnOrder = async () => {
+
         let userInfo = await AsyncStorage.getItem('user');
         userInfo = JSON.parse(userInfo)
         let token =  userInfo.token;
@@ -306,6 +308,7 @@ function Basket (props) {
         console.log(token, 'token');
         console.log(session, 'session');
         let products = [];
+
 
         let basket_products = basket_info[0]?.products;
         for (let i = 0; i < basket_products.length; i++) {
@@ -566,7 +569,6 @@ function Basket (props) {
             console.log(error);
         }
     }
-
 
 
     const getProductsInfo = async () => {
@@ -1352,16 +1354,18 @@ function Basket (props) {
                         androidHardwareAccelerationDisabled={true}
                         allowFileAccess={true}
                         onNavigationStateChange={(webViewState)=>{
-                            console.log(payment_url, 'payment_url');
+                            // console.log(payment_url, 'payment_url');
                             console.log(webViewState.url, 'WebView onNavigationStateChange')
-                            if(webViewState.url.search('https://farm-meat.site/shop/orders/payment/view/') !== -1)
+                            if(webViewState.url.indexOf('https://farm-meat.site/shop/orders/payment/view/') !== -1)
                             {
                                 console.log('cancel')
                                 setShowPaymentUrl(false)
                                 setOrderSuccess(false)
                                 dispatch(getBasketInfo())
+                                dispatch(waitPaymentPopup(true))
+                                props.navigation.navigate('MyOrdersScreen')
 
-                            } else if (webViewState.url.search('https://yoomoney.ru/checkout/payments/v2/success?orderId') !== -1) {
+                            } else if (webViewState.url.indexOf('https://yoomoney.ru/checkout/payments/v2/success?orderId') !== -1) {
                                 setShowPaymentUrl(false)
                                 setOrderSuccess(true)
                                 setTimeout(() => {

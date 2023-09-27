@@ -506,6 +506,8 @@ function Profile (props) {
                 </View>
             }
 
+
+
         </SafeAreaView>
     );
 }
@@ -915,5 +917,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         right: 20,
         top: 20,
-    }
+    },
+
 });

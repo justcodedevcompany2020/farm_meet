@@ -12,6 +12,7 @@ import {
   SET_PROFILE_INFO,
   SET_MY_ORDERS_INFO,
   SET_SEARCH_PRODUCT,
+  SET_OPEN_WAIT_PAYMENTS_POPUP,
 
 } from '../actions/type';
 
@@ -30,7 +31,7 @@ const initialState = {
   profile_info: [],
   my_orders_info: [],
   search_product: '',
-
+  waiting_for_payment: false
 };
 
 export default function farmMeatReducer(state = initialState, action) {
@@ -105,6 +106,11 @@ export default function farmMeatReducer(state = initialState, action) {
       return {
         ...state,
         search_product: payload
+      };
+    case SET_OPEN_WAIT_PAYMENTS_POPUP:
+      return {
+        ...state,
+        waiting_for_payment: payload
       };
     default:
       return state;

@@ -12,11 +12,13 @@ import {
     getMyOrdersData,
     getProfileData,
     login,
+    waitPaymentPopup
 } from '../../../store/actions/farmMeatActions';
 import Footer from '../../includes/Footer'
 import AddAddressIcon from '../../../assets/svg/add_address_icon'
 import CloseIcon from '../../../assets/svg/Close'
 import RepeatOrderIcon from '../../../assets/svg/repeat_order_icon'
+import { WebView } from 'react-native-webview';
 
 
 import {
@@ -53,7 +55,7 @@ const windowHeight = Dimensions.get('window').height;
 
 function Profile (props) {
     const dispatch = useDispatch();
-    const {my_orders_info} = useSelector(state => state.farmMeatReducer);
+    const {my_orders_info, waiting_for_payment} = useSelector(state => state.farmMeatReducer);
 
 
     useEffect(() => {
@@ -129,7 +131,7 @@ function Profile (props) {
         checkStatus()
         setTimeout(() => {
             setShowLoader(false)
-        }, 1700)
+        }, 2500)
     }, [my_orders_info]);
 
 
@@ -138,10 +140,13 @@ function Profile (props) {
     const [about_order_popup, setAboutOrderPopup] = useState(false);
     const [my_orders_info_local, setMyOrdersInfoLocal] = useState([]);
     const [order_success, setOrderSuccess] = useState(false);
+    const [order_success2, setOrderSuccess2] = useState(false);
     const [show_loader, setShowLoader] = useState(true);
     const [about_order_info, setAboutOrderInfo] = useState([]);
     const [more_product_info, setMoreProductInfo] = useState([]);
     const {basket_info} = useSelector(state => state.farmMeatReducer);
+    const [payment_url, setPaymentUrl] = useState('');
+    const [show_payment_url, setShowPaymentUrl] = useState(false);
 
 
     useEffect(() => {
@@ -376,6 +381,46 @@ function Profile (props) {
         setOrderSuccess(true)
     }
 
+    const makePayment  = async (id) => {
+        let userInfo = await AsyncStorage.getItem('user');
+        userInfo = JSON.parse(userInfo)
+        let token =  userInfo.token;
+        let session =  userInfo.session;
+       try {
+           let myHeaders = new Headers();
+           myHeaders.append("Authorization", `Token ${token}`);
+
+           let formdata = new FormData();
+           formdata.append("id", id);
+           formdata.append("session", session);
+
+           let requestOptions = {
+               method: 'POST',
+               headers: myHeaders,
+               body: formdata,
+               redirect: 'follow'
+           };
+
+           fetch("https://farm-meat.site/shop/orders/payment/", requestOptions)
+               .then(response => response.json())
+               .then(result => {console.log(result, 'url')
+                   if (result.hasOwnProperty('message')) {
+                       if (result.message == "Payment url create successful.") {
+                           if (result.hasOwnProperty('url')) {
+                               setShowPaymentUrl(true)
+                               setPaymentUrl(result.url)
+                           }
+                       }
+                   }
+
+               })
+               .catch(error => console.log('error', error));
+       } catch (error) {
+        // reject(error);
+        console.log(error);
+    }
+
+}
 
     const makePhoneCall = () => {
         let phoneNumber = '';
@@ -440,20 +485,32 @@ function Profile (props) {
                                             <View style={styles.my_order_items_address_date_info_wrapper}>
                                                 <Text style={styles.my_order_item_address_info}>{item.address}</Text>
                                                 <Text style={styles.my_order_item_date_info}>{getTime(item.date_created)}</Text>
-
                                             </View>
-
                                         </View>
                                         <View style={styles.my_order_item_number_status_info_wrapper}>
-                                            <Text style={styles.my_order_item_number}>Заказ №{item.id}</Text>
+                                            <View>
+                                                <Text style={styles.my_order_item_number}>Заказ №{item.id}</Text>
+                                                <Text style={styles.my_order_item_second_price_info}>{item.total}Р</Text>
+                                            </View>
+
                                             <Text style={styles.my_order_item_status_info}>{checkStatus(item.status)}</Text>
-
                                         </View>
+
                                         <View style={styles.my_order_item_price_status_pay_info_wrapper}>
-                                            <Text style={styles.my_order_item_second_price_info}>{item.total}Р</Text>
-                                            <Text style={styles.my_order_item_status_pay_info}>{checkStatusPay(item.status_pay)}</Text>
+                                            {item.status_pay == 0 &&
+                                                <TouchableOpacity
+                                                    style={styles.pay_for_the_order_btn}
+                                                    onPress={() => {
+                                                        makePayment(item.id)
+                                                    }}
+                                                >
+                                                    <Text style={styles.pay_for_the_order_btn_text}>Оплатить заказ</Text>
+                                                </TouchableOpacity>
 
+                                            }
+                                            <Text style={styles.my_order_item_status_pay_info}>{checkStatusPay(item.status_pay)}</Text>
                                         </View>
+
                                         {item.status == 5 || item.status == 6 ?
                                             <TouchableOpacity style={styles.my_order_item_more_info_btn} onPress={() => {getMoreAboutOrder(item)}}>
                                                 <Text style={styles.my_order_item_more_info_btn_text}>Подробнее</Text>
@@ -512,7 +569,6 @@ function Profile (props) {
                                               </View>
                                             :
                                             null
-
                                         }
 
 
@@ -626,7 +682,74 @@ function Profile (props) {
                 </View>
             </View>
             }
+            {order_success2 &&
+                <View style={styles.order_success_popup}>
+                    <View style={styles.order_success_popup_wrapper}>
+                        <Text style={styles.order_success_popup_title}>Заказ оплачен спасибо</Text>
+                    </View>
+                </View>
+            }
 
+            {show_payment_url &&
+            <View style={styles.payment_popup}>
+                <View style={styles.payment_popup_wrapper}>
+                    <WebView
+                        style={{
+                            height: '100%',
+                            width: '100%',
+                            flex: 1,
+                        }}
+                        useWebKit={true}
+                        source={{ uri: payment_url}}
+                        androidHardwareAccelerationDisabled={true}
+                        allowFileAccess={true}
+                        onNavigationStateChange={(webViewState)=>{
+                            // console.log(payment_url, 'payment_url');
+                            console.log(webViewState.url, 'WebView onNavigationStateChange')
+                            console.log(webViewState.url.indexOf('https://yoomoney.ru/checkout/payments/v2/success?orderId'), 'WebView succss')
+
+                            if(webViewState.url.indexOf('https://farm-meat.site/shop/orders/payment/view/') !== -1)
+                            {
+                                console.log('cancel')
+                                setShowPaymentUrl(false)
+                                setOrderSuccess(false)
+                                dispatch(getMyOrdersData())
+                                dispatch(waitPaymentPopup(true))
+                                props.navigation.navigate('MyOrdersScreen')
+
+                            } else if (webViewState.url.indexOf('https://yoomoney.ru/checkout/payments/v2/success?orderId') !== -1) {
+                                console.log('sucess');
+                                setShowPaymentUrl(false)
+                                setOrderSuccess2(true)
+                                setTimeout(() => {
+                                    setOrderSuccess(false)
+                                    props.navigation.navigate('HomeCatalogScreen')
+                                }, 2000)
+                                dispatch(getMyOrdersData())
+                            }
+
+
+                        }}
+                        javaScriptEnabled = {true}
+                        // domStorageEnabled = {true}
+                    />
+                </View>
+            </View>
+            }
+
+
+            {show_loader === false && waiting_for_payment &&
+            <TouchableOpacity
+                style={styles.order_success_popup2}
+                onPress={() => {
+                    dispatch(waitPaymentPopup(false))
+                }}
+            >
+                <TouchableHighlight style={styles.order_success_popup_wrapper2}>
+                    <Text style={styles.order_success_popup_title2}>ожидаем оплату заказа</Text>
+                </TouchableHighlight>
+            </TouchableOpacity>
+            }
 
 
         </SafeAreaView>
@@ -1099,11 +1222,11 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         width: '100%',
         paddingLeft: 15,
-        paddingRight: 9,
+        paddingRight: 15,
     },
     my_order_item_price_status_pay_info_wrapper: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
         paddingLeft: 15,
@@ -1128,6 +1251,7 @@ const styles = StyleSheet.create({
         color: '#4E7234',
         fontSize: 16,
         fontWeight: '500',
+        marginBottom: 3
     },
     my_order_item_status_info: {
         color: '#4E7234',
@@ -1152,6 +1276,7 @@ const styles = StyleSheet.create({
         color: '#B9D149',
         fontSize: 18,
         fontWeight: '500',
+        textAlign: 'right'
     },
     my_order_item_more_info_btn: {
         backgroundColor: '#B9D149',
@@ -1436,5 +1561,84 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         fontSize: 25,
     },
+    order_success_popup2: {
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        alignSelf: 'center',
+        alignItems: 'center',
+        // justifyContent: 'center',
+        paddingTop: 200,
+    },
 
+    order_success_popup_wrapper2: {
+        shadowOffset: {width: 2, height: 5},
+        shadowColor: 'rgb(0, 0, 0)',
+        shadowOpacity: 0.2,
+        shadowRadius: 19,
+        elevation: 10,
+        width: '80%',
+        height: 143,
+        backgroundColor: '#ffffff',
+        borderRadius: 25,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    order_success_popup_title2: {
+        color: '#4E7234',
+        fontWeight: '700',
+        fontSize: 25,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+    },
+    pay_for_the_order_btn: {
+        backgroundColor: '#B9D149',
+        width: 146,
+        height: 36,
+        borderRadius: 6,
+        alignSelf: 'center',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 5
+    },
+    pay_for_the_order_btn_text: {
+        color: '#ffffff',
+        fontWeight: '400',
+        fontSize: 15,
+    },
+    payment_popup: {
+        backgroundColor:  'rgba(157, 148, 148, 0.49)',
+        shadowColor: '#000000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 999,
+        zIndex: 999999,
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        left: 0,
+        bottom: 0,
+        alignSelf: 'center',
+        alignItems: 'center',
+        // justifyContent: 'center',
+        // paddingTop: 70,
+    },
+    payment_popup_wrapper: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: '#ffffff',
+        position: 'relative'
+
+    },
 });

@@ -10,7 +10,7 @@ import {
   SET_SINGLE_PRODUCT_DATA,
   SET_BASKET_INFO,
   SET_PROFILE_INFO,
-  SET_SEARCH_PRODUCT, SET_MY_ORDERS_INFO,
+  SET_SEARCH_PRODUCT, SET_MY_ORDERS_INFO, SET_OPEN_WAIT_PAYMENTS_POPUP,
 
 } from './type';
 import AuthService from '../services/authService';
@@ -365,6 +365,13 @@ export const login = user => dispatch => {
       return message;
     },
   );
+};
+
+export const waitPaymentPopup = is_open => dispatch => {
+  dispatch({
+    type:  SET_OPEN_WAIT_PAYMENTS_POPUP,
+    payload: is_open,
+  });
 };
 
 export const register = user => dispatch => {
